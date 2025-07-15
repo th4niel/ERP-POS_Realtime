@@ -1,0 +1,31 @@
+import { environment } from "@/configs/environment";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+
+//switches between SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY
+type CreateClientOptions = {
+    isAdmin?: boolean;
+}
+//getFromServerSide
+export async function createClient({ isAdmin = false }: CreateClientOptions) {
+    const cookieStore = await cookies();
+    const { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } = environment;
+
+    return createServerClient( SUPABASE_URL!, isAdmin ? SUPABASE_SERVICE_ROLE_KEY : SUPABASE_ANON_KEY, 
+        {
+            cookies: {
+                getAll() {
+                    return cookieStore.getAll();
+                },
+                setAll(cookiesToSet) {
+                    try {
+                      cookiesToSet.forEach(({name, value, options}) => cookieStore.set(name, value, options),
+                    )
+                    } catch {
+                        console.error("Error setting cookies", cookiesToSet)
+                    }
+                },
+            },
+        },
+    );
+}
