@@ -11,7 +11,7 @@ export async function createClient({ isAdmin = false }: CreateClientOptions) {
     const cookieStore = await cookies();
     const { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY } = environment;
 
-    return createServerClient( SUPABASE_URL!, isAdmin ? SUPABASE_SERVICE_ROLE_KEY : SUPABASE_ANON_KEY, 
+    return createServerClient( SUPABASE_URL!, isAdmin ? SUPABASE_SERVICE_ROLE_KEY! : SUPABASE_ANON_KEY!, 
         {
             cookies: {
                 getAll() {
