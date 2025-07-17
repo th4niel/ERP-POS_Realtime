@@ -1,4 +1,4 @@
-import { DarkmodeToggle } from '@/components/ui/common/darkmode-toggle';
+import { DarkmodeToggle } from '@/components/common/darkmode-toggle';
 import { Coffee } from 'lucide-react';
 import { ReactNode } from 'react';
 

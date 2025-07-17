@@ -1,5 +1,6 @@
 'use client';
 
+import FormInput from '@/components/common/form-input';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -39,41 +40,19 @@ export default function Login() {
       <CardContent>
         <Form {...form}>
           <form onSubmit={onSubmit} className="space-y-4">
-            <FormField
-              control={form.control}
+            <FormInput
+              form={form}
               name="email"
-              render={({ field: { ...rest } }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...rest}
-                      type="email"
-                      placeholder="Insert your email"
-                      autoComplete="off"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
+              label="Email"
+              placeholder="Insert email here"
+              type="email"
             />
-            <FormField
-              control={form.control}
+            <FormInput
+              form={form}
               name="password"
-              render={({ field: { ...rest } }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...rest}
-                      type="password"
-                      placeholder="******"
-                      autoComplete="off"
-                    />
-                  </FormControl>
-                  <FormMessage className="text-xs" />
-                </FormItem>
-              )}
+              label="Password"
+              placeholder="******"
+              type="password"
             />
             <Button type="submit">Login</Button>
           </form>
