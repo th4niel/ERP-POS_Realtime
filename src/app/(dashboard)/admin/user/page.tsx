@@ -1,7 +1,10 @@
+import UserManagement from "./_components/user";
+
+export const metadata = {
+ title: 'th4niel Store | User Management',
+ 
+};
+
 export default function UserManagementPage() {
-  return (
-    <div>
-      <h1>User Management</h1>
-    </div>
-  );
+  return <UserManagement />;
 }
