@@ -12,6 +12,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
+import DialogCreateUser from "./dialog-create-user";
 
 export default function UserManagement() {
     const supabase = createClient();
@@ -82,6 +83,7 @@ export default function UserManagement() {
                     <DialogTrigger asChild>
                         <Button variant="outline"> Create </Button>
                     </DialogTrigger>
+                    <DialogCreateUser/>
                 </Dialog>
             </div>
         </div>
