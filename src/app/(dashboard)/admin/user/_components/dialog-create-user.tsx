@@ -11,7 +11,7 @@ import { useForm } from "react-hook-form";
 import { createUser } from "../actions";
 import { toast } from "sonner";
 
-export default function DialogCreateUser() {
+export default function DialogCreateUser({ refetch }: { refetch: () => void}) {
         const form = useForm<CreateUserForm>({
             resolver: zodResolver(createUserSchema),
             defaultValues: INITIAL_CREATE_USER_FORM,
@@ -41,8 +41,9 @@ export default function DialogCreateUser() {
                 toast.success('Create User Success');
                 form.reset();
                 document.querySelector<HTMLButtonElement>('[data-state="open"]')?.click();
+                refetch();
             }
-        }, [createUserState, form]);
+        }, [createUserState, form, refetch]);
     return (
         <DialogContent className="sm:max-w-[425px]">
             <Form {...form}>

@@ -17,7 +17,7 @@ import DialogCreateUser from "./dialog-create-user";
 export default function UserManagement() {
     const supabase = createClient();
     const { currentPage, currentLimit, currentSearch, handleChangePage, handleChangeLimit, handleChangeSearch } = useDataTable();
-    const { data: users, isLoading } = useQuery({
+    const { data: users, isLoading, refetch, } = useQuery({
         queryKey: ['users', currentPage, currentLimit, currentSearch],
         queryFn: async () => {
             const result = await supabase
@@ -71,7 +71,7 @@ export default function UserManagement() {
 
     const totalPages =  useMemo(() => {
         return users && users.count !== null ? Math.ceil(users.count / currentLimit) : 0
-    }, [users]);
+    }, [users, currentLimit]);
 
     return (
     <div className="w-full">
@@ -83,7 +83,7 @@ export default function UserManagement() {
                     <DialogTrigger asChild>
                         <Button variant="outline"> Create </Button>
                     </DialogTrigger>
-                    <DialogCreateUser/>
+                    <DialogCreateUser refetch={refetch}/>
                 </Dialog>
             </div>
         </div>
