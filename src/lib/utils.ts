@@ -6,4 +6,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function getImageData(event: ChangeEvent<HTMLInputElement>) {}
+export function getImageData(event: ChangeEvent<HTMLInputElement>) {
+  const file = event.target.files![0];
+  const displayUrl = URL.createObjectURL(event.target.files![0]);
+}
