@@ -8,5 +8,6 @@ export function cn(...inputs: ClassValue[]) {
 
 export function getImageData(event: ChangeEvent<HTMLInputElement>) {
   const file = event.target.files![0];
-  const displayUrl = URL.createObjectURL(event.target.files![0]);
+  const displayUrl = URL.createObjectURL(file);
+  return { file, displayUrl };
 }
