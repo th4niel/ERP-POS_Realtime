@@ -23,7 +23,7 @@ export default function DialogCreateUser({ refetch }: { refetch: () => void}) {
 
         const [preview, setPreview] = useState<{ file: File; displayUrl: string } | undefined >(undefined);
 
-        const onSubmit = form.handleSubmit(async (data) => {
+        const onSubmit = form.handleSubmit((data) => {
             const formData = new FormData();
             Object.entries(data).forEach(([key, value]) => {
                 formData.append(key, key === 'avatar_url' ? preview!.file ?? '' : value);
@@ -54,7 +54,7 @@ export default function DialogCreateUser({ refetch }: { refetch: () => void}) {
         <DialogContent className="sm:max-w-[425px]">
             <Form {...form}>
                 <DialogHeader>
-                    <DialogTitle>User</DialogTitle>
+                    <DialogTitle>Create User</DialogTitle>
                     <DialogDescription>register a new user</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={onSubmit} className="space-y-4">                    
@@ -96,7 +96,11 @@ export default function DialogCreateUser({ refetch }: { refetch: () => void}) {
                             <Button variant="outline">Cancel</Button>
                         </DialogClose>
                         <Button type="submit">
-                            {isPendingCreateUser ? <Loader2 className="animate-spin" /> : 'Create'}
+                            {isPendingCreateUser ? (
+                                <Loader2 className="animate-spin" />
+                            ) : (
+                                'Create'
+                            )}
                         </Button>
                     </DialogFooter>                    
                 </form>
