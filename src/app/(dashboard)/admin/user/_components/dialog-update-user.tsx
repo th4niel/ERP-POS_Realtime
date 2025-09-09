@@ -37,8 +37,8 @@ export default function DialogUpdateUser({
             });
             formData.append('old_avatar_url', currentData?.avatar_url ?? '');
         } else {
-            Object.entries(data).forEach(([Key, value]) => {
-                formData.append(Key, value);
+            Object.entries(data).forEach(([key, value]) => {
+                formData.append(key, value);
             });
         }
         formData.append('id', currentData?.id ?? '');
@@ -56,7 +56,7 @@ export default function DialogUpdateUser({
         }
 
         if(updateUserState?.status === 'success') {
-            toast.success('Create User Success');
+            toast.success('Update User Success');
             form.reset();
             handleChangeAction?.(false);
             refetch();
