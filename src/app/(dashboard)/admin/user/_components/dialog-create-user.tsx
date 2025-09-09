@@ -16,7 +16,7 @@ export default function DialogCreateUser({ refetch }: { refetch: () => void}) {
 
         const [createUserState, createUserAction, isPendingCreateUser] = useActionState(createUser, INITIAL_STATE_CREATE_USER,);
 
-        const [preview, setPreview] = useState<Preview| undefined >(undefined);
+        const [preview, setPreview] = useState<Preview | undefined >(undefined);
 
         const onSubmit = form.handleSubmit((data) => {
             const formData = new FormData();
