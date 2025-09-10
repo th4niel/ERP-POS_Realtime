@@ -27,7 +27,7 @@ export default function DialogUpdateUser({
 
     const [updateUserState, updateUserAction, isPendingUpdateUser] = useActionState(updateUser, INITIAL_STATE_UPDATE_USER,);
 
-    const [preview, setPreview] = useState<Preview| undefined >(undefined);
+    const [preview, setPreview] = useState<Preview | undefined>(undefined);
 
     const onSubmit = form.handleSubmit((data) => {
         const formData = new FormData();
