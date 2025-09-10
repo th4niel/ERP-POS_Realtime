@@ -22,7 +22,7 @@ export default function DialogDelete({open, onOpenChange, title, onSubmit, isLoa
                     <DialogClose asChild>
                         <Button variant="outline">Cancel</Button>
                     </DialogClose>
-                    <Button formAction={onSubmit}>
+                    <Button variant="destructive" formAction={onSubmit}>
                         {isLoading ? <Loader2 className="animate-spin" /> : 'Delete'}
                     </Button>
                 </DialogFooter>

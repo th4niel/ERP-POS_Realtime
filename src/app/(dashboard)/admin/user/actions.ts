@@ -77,7 +77,7 @@ export async function createUser(prevState: AuthFormState, formData: FormData) {
   return {
     status: 'success',
   };
-}
+};
 
 export async function updateUser(prevState: AuthFormState, formData: FormData) {
     let validatedFields = updateUserSchema.safeParse({
@@ -146,7 +146,7 @@ export async function updateUser(prevState: AuthFormState, formData: FormData) {
   return {
     status: 'success',
   };
-}
+};
 
 export async function deleteUser(prevState: AuthFormState, formData: FormData) {
   const supabase = await createClient({ isAdmin: true })
