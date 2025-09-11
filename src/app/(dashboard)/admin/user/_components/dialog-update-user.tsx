@@ -17,34 +17,75 @@ export default function DialogUpdateUser({
     handleChangeAction,
 }: { 
     refetch: () => void; 
-    currentData?: Profile;
-    open?: boolean;
-    handleChangeAction?: (open: boolean) => void;
+    currentData?: Profile | null;
+    open: boolean;
+    handleChangeAction: () => void;
 }) {
     const form = useForm<UpdateUserForm>({
         resolver: zodResolver(updateUserSchema),
+        defaultValues: {
+            name: '',
+            role: '',
+            avatar_url: '',
+        }
     });
 
-    const [updateUserState, updateUserAction, isPendingUpdateUser] = useActionState(updateUser, INITIAL_STATE_UPDATE_USER,);
+    const [updateUserState, updateUserAction, isPendingUpdateUser] = useActionState(
+        updateUser, 
+        INITIAL_STATE_UPDATE_USER
+    );
 
     const [preview, setPreview] = useState<Preview | undefined>(undefined);
 
-    const onSubmit = form.handleSubmit((data) => {
-        const formData = new FormData();
-        if (currentData?.avatar_url !== data.avatar_url) {
-            Object.entries(data).forEach(([key, value]) => {
-                formData.append(key, key === 'avatar_url' ? preview!.file ?? '' : value);
+    useEffect(() => {
+        if (!open) {
+            form.reset({
+                name: '',
+                role: '',
+                avatar_url: '',
             });
-            formData.append('old_avatar_url', currentData?.avatar_url ?? '');
+            setPreview(undefined);
+            startTransition(() => {
+                updateUserAction(null);
+            });
+        }
+    }, [open, form, updateUserAction]);
+
+    useEffect(() => {
+        if (open && currentData) {
+            form.setValue('name', currentData.name || '');
+            form.setValue('role', currentData.role || '');
+            form.setValue('avatar_url', currentData.avatar_url || '');
+            
+            if (currentData.avatar_url) {
+                setPreview({
+                    file: new File([], currentData.avatar_url),
+                    displayUrl: currentData.avatar_url,
+                });
+            }
+        }
+    }, [open, currentData, form]);
+
+    const onSubmit = form.handleSubmit((data) => {
+        if (!currentData?.id) return;
+
+        const formData = new FormData();
+        
+        if (currentData.avatar_url !== data.avatar_url && preview?.file) {
+            Object.entries(data).forEach(([key, value]) => {
+                formData.append(key, key === 'avatar_url' ? preview.file : value);
+            });
+            formData.append('old_avatar_url', currentData.avatar_url || '');
         } else {
             Object.entries(data).forEach(([key, value]) => {
                 formData.append(key, value);
             });
         }
-        formData.append('id', currentData?.id ?? '');
+        
+        formData.append('id', currentData.id);
 
         startTransition(() => {
-             updateUserAction(formData);
+            updateUserAction(formData);
         });
     });
 
@@ -53,37 +94,30 @@ export default function DialogUpdateUser({
             toast.error('Update User Failed', {
                 description: updateUserState.errors?._form?.[0],
             });
-        }
-
-        if(updateUserState?.status === 'success') {
-            toast.success('Update User Success');
-            form.reset();
-            handleChangeAction?.(false);
-            refetch();
-        }
-    }, [updateUserState, form, refetch, handleChangeAction]);
-
-    useEffect(() => {
-        if (currentData) {
-            form.setValue('name', currentData.name as string);
-            form.setValue('role', currentData.role as string);
-            form.setValue('avatar_url', currentData.avatar_url as string);
-            setPreview({
-                file: new File([], currentData.avatar_url as string),
-                displayUrl: currentData.avatar_url as string,
+            startTransition(() => {
+                updateUserAction(null);
             });
         }
-    }, [currentData, form]);
-        
+
+        if (updateUserState?.status === 'success') {
+            toast.success('Update User Success');
+            handleChangeAction();
+            refetch();
+            startTransition(() => {
+                updateUserAction(null);
+            });
+        }
+    }, [updateUserState, refetch, handleChangeAction, updateUserAction]);
+
     return (
         <Dialog open={open} onOpenChange={handleChangeAction}>
             <FormUser 
-            form={form} 
-            onSubmit={onSubmit} 
-            isLoading={isPendingUpdateUser}
-            type="Update" 
-            preview={preview} 
-            setPreview={setPreview}
+                form={form} 
+                onSubmit={onSubmit} 
+                isLoading={isPendingUpdateUser}
+                type="Update" 
+                preview={preview} 
+                setPreview={setPreview}
             />
         </Dialog>
     );

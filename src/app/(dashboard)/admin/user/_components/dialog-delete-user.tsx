@@ -12,36 +12,56 @@ export default function DialogDeleteUser({
     handleChangeAction
 }: { 
     refetch: () => void; 
-    currentData?: Profile;
+    currentData?: Profile | null;
     open: boolean;
-    handleChangeAction: (open: boolean) => void;
+    handleChangeAction: () => void;
 }) {
-    const [deleteUserState, deleteUserAction, isPendingDeleteUser] = useActionState(deleteUser, INITIAL_STATE_ACTION);
+    const [deleteUserState, deleteUserAction, isPendingDeleteUser] = useActionState(
+        deleteUser, 
+        INITIAL_STATE_ACTION
+    );
+
+    useEffect(() => {
+        if (!open) {
+            startTransition(() => {
+                deleteUserAction(null);
+            });
+        }
+    }, [open,deleteUserAction]);
 
     const onSubmit = () => {
+        if (!currentData?.id) return;
+
         const formData = new FormData();
-        formData.append('id', currentData!.id as string);
-        formData.append('avatar_url', currentData!.avatar_url as string);
+        formData.append('id', currentData.id);
+        formData.append('avatar_url', currentData.avatar_url || '');
+        
         startTransition(() => {
             deleteUserAction(formData);
         });
     };
 
-     useEffect(() => {
+    useEffect(() => {
         if (deleteUserState?.status === 'error') {
-            toast.error('Update User Failed', {
+            toast.error('Delete User Failed', {
                 description: deleteUserState.errors?._form?.[0],
+            });
+            startTransition(() => {
+                deleteUserAction(null);
             });
         }
 
-        if(deleteUserState?.status === 'success') {
+        if (deleteUserState?.status === 'success') {
             toast.success('Delete User Success');
-            handleChangeAction?.(false);
+            handleChangeAction();
             refetch();
+            startTransition(() => {
+                deleteUserAction(null);
+            });
         }
-    }, [deleteUserState, refetch, handleChangeAction]);
+    }, [deleteUserState, refetch, handleChangeAction, deleteUserAction]);
 
-    return(
+    return (
         <DialogDelete 
             open={open} 
             onOpenChange={handleChangeAction}

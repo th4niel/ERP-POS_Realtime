@@ -10,7 +10,7 @@ import useDataTable from "@/hooks/use-data-table";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
 import DialogCreateUser from "./dialog-create-user";
 import { Profile } from "@/types/auth";
@@ -20,7 +20,8 @@ import DialogDeleteUser from "./dialog-delete-user";
 export default function UserManagement() {
     const supabase = createClient();
     const { currentPage, currentLimit, currentSearch, handleChangePage, handleChangeLimit, handleChangeSearch } = useDataTable();
-    const { data: users, isLoading, refetch, } = useQuery({
+    
+    const { data: users, isLoading, refetch } = useQuery({
         queryKey: ['users', currentPage, currentLimit, currentSearch],
         queryFn: async () => {
             const result = await supabase
@@ -39,101 +40,111 @@ export default function UserManagement() {
         },
     });
 
-    const [selectedAction, setSelectedAction] = useState<{
-        data: Profile;
-        type: 'update' | 'delete';
-    } | null>(null);
+    const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
 
-    const handleChangeAction = (open: boolean) => {
-        if (!open) setSelectedAction(null);
-    };
+    const handleOpenUpdateDialog = useCallback((user: Profile) => {
+        setSelectedUser(user);
+        setUpdateDialogOpen(true);
+    }, []);
+
+    const handleCloseUpdateDialog = useCallback(() => {
+        setUpdateDialogOpen(false);
+        setTimeout(() => setSelectedUser(null), 150);
+    }, []);
+
+    const handleOpenDeleteDialog = useCallback((user: Profile) => {
+        setSelectedUser(user);
+        setDeleteDialogOpen(true);
+    }, []);
+
+    const handleCloseDeleteDialog = useCallback(() => {
+        setDeleteDialogOpen(false);
+        setTimeout(() => setSelectedUser(null), 150);
+    }, []);
 
     const filteredData = useMemo(() => {
         return (users?.data || []).map((user, index) => {
             return [
-                index+1,
+                index + 1,
                 user.id,
                 user.name,
                 user.role,
                 <DropdownAction 
-                    key ={user.id}
+                    key={user.id}
                     menu={[
-                        {label: (
-                            <span className="flex items-center gap-2">
-                                <Pencil />
-                                Edit
-                            </span>
-                        ),
-                        action: () => {
-                            setSelectedAction({
-                                data: user,
-                                type: 'update',
-                            });
+                        {
+                            label: (
+                                <span className="flex items-center gap-2">
+                                    <Pencil />
+                                    Edit
+                                </span>
+                            ),
+                            action: () => handleOpenUpdateDialog(user),
                         },
-                    },
-                    {
-                    label: (
-                        <span className="flex items-center gap-2">
-                            <Trash2 className="text-red-400"/>
-                            Delete
-                        </span>
-                    ),
-                    variant: 'destructive',
-                    action: () => {
-                        setSelectedAction({
-                            data: user,
-                            type: 'delete',
-                        });
-                    },
-                },
-                ]}/>,
+                        {
+                            label: (
+                                <span className="flex items-center gap-2">
+                                    <Trash2 className="text-red-400"/>
+                                    Delete
+                                </span>
+                            ),
+                            variant: 'destructive',
+                            action: () => handleOpenDeleteDialog(user),
+                        },
+                    ]}
+                />,
             ];
         });
-    }, [users]);
+    }, [users, handleOpenUpdateDialog, handleOpenDeleteDialog]);
 
-    const totalPages =  useMemo(() => {
-        return users && users.count !== null ? Math.ceil(users.count / currentLimit) : 0
+    const totalPages = useMemo(() => {
+        return users && users.count !== null ? Math.ceil(users.count / currentLimit) : 0;
     }, [users, currentLimit]);
 
     return (
-    <div className="w-full">
-        <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
-            <h1 className="text-2xl font-bold">User Management</h1>
-            <div className="flex gap-2">
-                <Input placeholder="Search by name" onChange={(e) => handleChangeSearch(e.target.value)} />
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="outline"> Create </Button>
-                    </DialogTrigger>
-                    <DialogCreateUser refetch={refetch}/>
-                </Dialog>
+        <div className="w-full">
+            <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
+                <h1 className="text-2xl font-bold">User Management</h1>
+                <div className="flex gap-2">
+                    <Input 
+                        placeholder="Search by name" 
+                        onChange={(e) => handleChangeSearch(e.target.value)} 
+                    />
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="outline">Create</Button>
+                        </DialogTrigger>
+                        <DialogCreateUser refetch={refetch}/>
+                    </Dialog>
+                </div>
             </div>
-        </div>
-        {/* {isLoading && <div>Loading . . .</div>} */}
-        <DataTable 
-        header={HEADER_TABLE_USER} 
-        data={filteredData} 
-        isLoading={isLoading}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        currentLimit={currentLimit}
-        onChangePage={handleChangePage}
-        onChangeLimit={handleChangeLimit}
-        />
-        
-        <DialogUpdateUser
-            open={selectedAction !== null && selectedAction.type === 'update'}
-            refetch={refetch}
-            currentData={selectedAction?.data}
-            handleChangeAction={handleChangeAction}
-        />
 
-        <DialogDeleteUser
-            open={selectedAction !== null && selectedAction.type === 'delete'}
-            refetch={refetch}
-            currentData={selectedAction?.data}
-            handleChangeAction={handleChangeAction}
-        />
-    </div>
+            <DataTable 
+                header={HEADER_TABLE_USER} 
+                data={filteredData} 
+                isLoading={isLoading}
+                totalPages={totalPages}
+                currentPage={currentPage}
+                currentLimit={currentLimit}
+                onChangePage={handleChangePage}
+                onChangeLimit={handleChangeLimit}
+            />
+            
+            <DialogUpdateUser
+                open={updateDialogOpen}
+                refetch={refetch}
+                currentData={selectedUser}
+                handleChangeAction={handleCloseUpdateDialog}
+            />
+
+            <DialogDeleteUser
+                open={deleteDialogOpen}
+                refetch={refetch}
+                currentData={selectedUser}
+                handleChangeAction={handleCloseDeleteDialog}
+            />
+        </div>
     );
 }
