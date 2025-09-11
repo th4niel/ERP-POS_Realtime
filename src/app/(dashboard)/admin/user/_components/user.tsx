@@ -97,7 +97,7 @@ export default function UserManagement() {
                 />,
             ];
         });
-    }, [users, handleOpenUpdateDialog, handleOpenDeleteDialog]);
+    }, [users, handleOpenUpdateDialog, handleOpenDeleteDialog, currentLimit, currentPage]);
 
     const totalPages = useMemo(() => {
         return users && users.count !== null ? Math.ceil(users.count / currentLimit) : 0;
