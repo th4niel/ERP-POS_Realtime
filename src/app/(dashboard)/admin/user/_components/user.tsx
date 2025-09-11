@@ -67,7 +67,7 @@ export default function UserManagement() {
     const filteredData = useMemo(() => {
         return (users?.data || []).map((user, index) => {
             return [
-                index + 1,
+                currentLimit * (currentPage - 1) + index + 1,
                 user.id,
                 user.name,
                 user.role,
