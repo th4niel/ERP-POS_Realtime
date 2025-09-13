@@ -11,3 +11,11 @@ export function getImageData(event: ChangeEvent<HTMLInputElement>) {
   const displayUrl = URL.createObjectURL(file);
   return { file, displayUrl };
 }
+
+export function convertUSD(number: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+  }).format(number);
+}

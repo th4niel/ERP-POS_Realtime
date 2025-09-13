@@ -1,7 +1,7 @@
 import UserManagement from "./_components/user";
 
 export const metadata = {
- title: 'th4niel Store | User Management',
+ title: 'th4niel Cafe | User Management',
  
 };
 
