@@ -6,7 +6,7 @@ export const menuSchema = z.object({
     price: z.number(),
     discount: z.number(),
     category: z.string(),
-    image_url: z.union([z.string(), z.instanceof(File),]),
+    image_url: z.union([z.string(), z.instanceof(File)]),
     is_available: z.boolean(),
 });
 
