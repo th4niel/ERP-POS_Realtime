@@ -1,3 +1,5 @@
+'use server';
+
 import { uploadFile } from "@/actions/storage-action";
 import { createClient } from "@/lib/supabase/server";
 import { MenuFormState } from "@/types/menu";

@@ -14,12 +14,16 @@ export const CATEGORY_LIST = [
   label: 'Coffee',
   },
   {
-  value: 'patisserie',
-  label: 'Patisserie',
+  value: 'tea',
+  label: 'Tea',
   },
   {
-  value: 'meals',
-  label: 'Meals',
+  value: 'pastries',
+  label: 'Pastries',
+  },
+  {
+  value: 'sandwiches',
+  label: 'Sandwiches',
   },
 ];
 
@@ -33,3 +37,28 @@ export const AVAILABILITY_LIST = [
   label: 'Not Available',
   },
 ];
+
+export const INITIAL_MENU = {
+  name: '',
+  description: '',
+  price: '',
+  discount: '',
+  category: '',
+  image_url: '',
+  is_available: '',
+};
+
+export const INITIAL_STATE_MENU = {
+  status: 'idle',
+  errors: {
+    id: [],
+    name: [],
+    description: [],
+    price: [],
+    discount: [],
+    category: [],
+    is_available: [],
+    image_url: [],
+    _form: [],
+  },
+};

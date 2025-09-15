@@ -15,13 +15,14 @@ import { Menu } from "@/validations/menu-validation";
 import Image from "next/image";
 import { cn, convertUSD } from "@/lib/utils";
 import { HEADER_TABLE_MENU } from "@/constants/menu-constant";
+import DialogCreateMenu from "./dialog-create-menu";
 
 
 export default function MenuManagement() {
     const supabase = createClient();
     const { currentPage, currentLimit, currentSearch, handleChangePage, handleChangeLimit, handleChangeSearch } = useDataTable();
     
-    const { data: menus, isLoading } = useQuery({
+    const { data: menus, isLoading, refetch } = useQuery({
         queryKey: ['menus', currentPage, currentLimit, currentSearch],
         queryFn: async () => {
             const query = supabase
@@ -136,6 +137,7 @@ export default function MenuManagement() {
                         <DialogTrigger asChild>
                             <Button variant="outline">Create</Button>
                         </DialogTrigger>
+                        <DialogCreateMenu refetch={refetch}/>
                     </Dialog>
                 </div>
             </div>

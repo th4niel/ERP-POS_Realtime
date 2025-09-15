@@ -1,55 +1,55 @@
-import { INITIAL_CREATE_USER_FORM, INITIAL_STATE_CREATE_USER } from "@/constants/auth-constant";
-import { CreateUserForm, createUserSchema } from "@/validations/auth-validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { startTransition, useActionState, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { createMenu } from "../actions";
 import { toast } from "sonner";
 import { Preview } from "@/types/general";
-import FormUser from "./form-user";
+import { MenuForm, menuFormSchema } from "@/validations/menu-validation";
+import { INITIAL_MENU, INITIAL_STATE_MENU } from "@/constants/menu-constant";
+import { createMenu } from "../actions";
+import FormMenu from "./form-menu";
 
-export default function DialogCreateMenu({ refetch }: { refetch: () => void}) {
-        const form = useForm<CreateUserForm>({
-            resolver: zodResolver(createUserSchema),
-            defaultValues: INITIAL_CREATE_USER_FORM,
+export default function DialogCreateMenu({ refetch }: { refetch: () => void }) {
+        const form = useForm<MenuForm>({
+            resolver: zodResolver(menuFormSchema),
+            defaultValues: INITIAL_MENU,
         });
 
-        const [createUserState, createUserAction, isPendingCreateUser] = useActionState(createUser, INITIAL_STATE_CREATE_USER,);
+        const [createMenuState, createMenuAction, isPendingCreateMenu] = useActionState(createMenu, INITIAL_STATE_MENU);
 
         const [preview, setPreview] = useState<Preview | undefined >(undefined);
 
         const onSubmit = form.handleSubmit((data) => {
             const formData = new FormData();
             Object.entries(data).forEach(([key, value]) => {
-                formData.append(key, key === 'avatar_url' ? preview!.file ?? '' : value);
+                formData.append(key, key === 'image_url' ? preview!.file ?? '' : value);
             });
 
             startTransition(() => {
-                createUserAction(formData);
+                createMenuAction(formData);
             });
         });
 
         useEffect(() => {
-            if (createUserState?.status === 'error') {
-                toast.error('Create User Failed', {
-                    description: createUserState.errors?._form?.[0],
+            if (createMenuState?.status === 'error') {
+                toast.error('Create Menu Failed', {
+                    description: createMenuState.errors?._form?.[0],
                 });
             }
 
-            if(createUserState?.status === 'success') {
-                toast.success('Create User Success');
+            if(createMenuState?.status === 'success') {
+                toast.success('Create Menu Success');
                 form.reset();
                 setPreview(undefined);
                 document.querySelector<HTMLButtonElement>('[data-state="open"]')?.click();
                 refetch();
             }
-        }, [createUserState, form, refetch]);
+        }, [createMenuState, form, refetch]);
         
     return (
-        <FormUser 
-            form={form} 
+        <FormMenu
+            form={form}     
             onSubmit={onSubmit} 
-            isLoading={isPendingCreateUser} 
+            isLoading={isPendingCreateMenu} 
             type="Create" 
             preview={preview} 
             setPreview={setPreview}
