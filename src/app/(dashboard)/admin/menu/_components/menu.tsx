@@ -16,6 +16,7 @@ import Image from "next/image";
 import { cn, convertUSD } from "@/lib/utils";
 import { HEADER_TABLE_MENU } from "@/constants/menu-constant";
 import DialogCreateMenu from "./dialog-create-menu";
+import DialogUpdateMenu from "./dialog-update-menu";
 
 
 export default function MenuManagement() {
@@ -151,6 +152,13 @@ export default function MenuManagement() {
                 currentLimit={currentLimit}
                 onChangePage={handleChangePage}
                 onChangeLimit={handleChangeLimit}
+            />
+
+            <DialogUpdateMenu
+                open={selectedAction !== null && selectedAction.type === 'update'}
+                refetch={refetch}
+                currentData={selectedAction?.data}
+                handleChangeAction={handleChangeAction}
             />
         </div>
     );
