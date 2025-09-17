@@ -1,10 +1,11 @@
 'use server';
 
-import { uploadFile } from "@/actions/storage-action";
+import { deleteFile, uploadFile } from "@/actions/storage-action";
 import { createClient } from "@/lib/supabase/server";
 import { MenuFormState } from "@/types/menu";
 import { menuSchema } from "@/validations/menu-validation";
-
+import { INITIAL_STATE_MENU } from "@/constants/menu-constant";
+import { INITIAL_STATE_ACTION } from "@/constants/general-constant";
 
 export async function createMenu(prevState: MenuFormState, formData: FormData) {
   let validatedFields = menuSchema.safeParse({
@@ -79,7 +80,11 @@ export async function createMenu(prevState: MenuFormState, formData: FormData) {
   };
 }
 
-export async function updateMenu(prevState: MenuFormState, formData: FormData) {
+export async function updateMenu(prevState: MenuFormState, formData: FormData | null) {
+  if (!formData) {
+    return INITIAL_STATE_MENU;
+  }
+
   let validatedFields = menuSchema.safeParse({
     name: formData.get('name'),
     description: formData.get('description'),
@@ -106,7 +111,7 @@ export async function updateMenu(prevState: MenuFormState, formData: FormData) {
       'images',
       'menus',
       validatedFields.data.image_url,
-      oldImageUrl.split('/images/')[1],
+      oldImageUrl?.split('/images/')[1],
     );
     if (errors) {
       return {
@@ -151,5 +156,44 @@ export async function updateMenu(prevState: MenuFormState, formData: FormData) {
 
   return {
     status: 'success',
+  };
+}
+
+export async function deleteMenu(prevState: MenuFormState, formData: FormData | null) {
+  if (!formData) {
+    return INITIAL_STATE_ACTION;
+  }
+
+  const supabase = await createClient();
+  const image = formData.get('image_url') as string;
+  
+  if (image && image.trim() !== '' && image.includes('/images/')) {
+    const { status, errors } = await deleteFile('images', image.split('/images/')[1]);
+
+    if (status === 'error') {
+      return {
+        status: 'error',
+        errors: {
+          ...prevState.errors,
+          _form: [errors?._form?.[0] ?? 'Failed to delete image'],
+        },
+      };
+    }
+  }
+
+  const { error } = await supabase.from('menus').delete().eq('id', formData.get('id'));
+
+  if (error) {
+    return {
+      status: 'error',
+      errors: {
+        ...prevState.errors,
+        _form: [error.message],
+      },
+    };
+  }
+
+  return {
+    status: 'success'
   };
 }

@@ -16,12 +16,21 @@ export default function DialogUpdateMenu({
   handleChangeAction,
 }: {
   refetch: () => void;
-  currentData?: Menu;
-  open?: boolean;
-  handleChangeAction?: (open: boolean) => void;
+  currentData?: Menu | null;
+  open: boolean;
+  handleChangeAction: () => void;
 }) {
   const form = useForm<MenuForm>({
     resolver: zodResolver(menuFormSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      price: '',
+      discount: '',
+      category: '',
+      is_available: '',
+      image_url: '',
+    }
   });
 
   const [updateMenuState, updateMenuAction, isPendingUpdateMenu] =
@@ -29,19 +38,60 @@ export default function DialogUpdateMenu({
 
   const [preview, setPreview] = useState<Preview | undefined>(undefined);
 
-  const onSubmit = form.handleSubmit((data) => {
-    const formData = new FormData();
-    if (currentData?.image_url !== data.image_url) {
-      Object.entries(data).forEach(([key, value]) => {
-        formData.append(key, key === 'image_url' ? preview!.file ?? '' : value);
+  useEffect(() => {
+    if (!open) {
+      form.reset({
+        name: '',
+        description: '',
+        price: '',
+        discount: '',
+        category: '',
+        is_available: '',
+        image_url: '',
       });
-      formData.append('old_image_url', currentData?.image_url ?? '');
-    } else {
-      Object.entries(data).forEach(([Key, value]) => {
-        formData.append(Key, value);
+      setPreview(undefined);
+      startTransition(() => {
+        updateMenuAction(null);
       });
     }
-    formData.append('id', currentData?.id ?? '');
+  }, [open, form, updateMenuAction]);
+
+  useEffect(() => {
+    if (open && currentData) {
+      form.setValue('name', currentData.name);
+      form.setValue('description', currentData.description);
+      form.setValue('price', currentData.price.toString());
+      form.setValue('discount', currentData.discount.toString());
+      form.setValue('category', currentData.category);
+      form.setValue('is_available', currentData.is_available.toString());
+      form.setValue('image_url', currentData.image_url);
+      
+      if (currentData.image_url && typeof currentData.image_url === 'string') {
+        setPreview({
+          file: new File([], currentData.image_url),
+          displayUrl: currentData.image_url,
+        });
+      }
+    }
+  }, [open, currentData, form]);
+
+  const onSubmit = form.handleSubmit((data) => {
+    if (!currentData?.id) return;
+
+    const formData = new FormData();
+    
+    if (currentData.image_url !== data.image_url && preview?.file) {
+      Object.entries(data).forEach(([key, value]) => {
+        formData.append(key, key === 'image_url' ? preview.file : value);
+      });
+      formData.append('old_image_url', currentData.image_url || '');
+    } else {
+      Object.entries(data).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+    }
+    
+    formData.append('id', currentData.id);
 
     startTransition(() => {
       updateMenuAction(formData);
@@ -53,31 +103,20 @@ export default function DialogUpdateMenu({
       toast.error('Update Menu Failed', {
         description: updateMenuState.errors?._form?.[0],
       });
+      startTransition(() => {
+        updateMenuAction(null);
+      });
     }
 
     if (updateMenuState?.status === 'success') {
       toast.success('Update Menu Success');
-      form.reset();
-      handleChangeAction?.(false);
+      handleChangeAction();
       refetch();
-    }
-  }, [updateMenuState, form, handleChangeAction, refetch]);
-
-  useEffect(() => {
-    if (currentData) {
-      form.setValue('name', currentData.name);
-      form.setValue('description', currentData.description);
-      form.setValue('price', currentData.price.toString());
-      form.setValue('discount', currentData.discount.toString());
-      form.setValue('category', currentData.category);
-      form.setValue('is_available', currentData.is_available.toString());
-      form.setValue('image_url', currentData.image_url);
-      setPreview({
-        file: new File([], currentData.image_url as string),
-        displayUrl: currentData.image_url as string,
+      startTransition(() => {
+        updateMenuAction(null);
       });
     }
-  }, [currentData, form]);
+  }, [updateMenuState, refetch, handleChangeAction, updateMenuAction]);
 
   return (
     <Dialog open={open} onOpenChange={handleChangeAction}>

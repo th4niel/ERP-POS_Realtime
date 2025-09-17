@@ -9,7 +9,7 @@ import useDataTable from "@/hooks/use-data-table";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { Menu } from "@/validations/menu-validation";
 import Image from "next/image";
@@ -17,7 +17,7 @@ import { cn, convertUSD } from "@/lib/utils";
 import { HEADER_TABLE_MENU } from "@/constants/menu-constant";
 import DialogCreateMenu from "./dialog-create-menu";
 import DialogUpdateMenu from "./dialog-update-menu";
-
+import DialogDeleteMenu from "./dialog-delete-menu";
 
 export default function MenuManagement() {
     const supabase = createClient();
@@ -33,7 +33,7 @@ export default function MenuManagement() {
                 .order('created_at')
                 
                 if(currentSearch) {
-                    query.or(`name.ilike.%${currentSearch}%,category.ilike%${currentSearch}%`);
+                    query.or(`name.ilike.%${currentSearch}%,category.ilike.%${currentSearch}%`);
                 }
 
                 const result = await query;
@@ -47,14 +47,29 @@ export default function MenuManagement() {
         },
     });
 
-    const [selectedAction, setSelectedAction] = useState<{
-        data: Menu;
-        type: 'update' | 'delete';
-    } | null>(null);
+    const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
 
-    const handleChangeAction = (open: boolean) => {
-        if (!open) setSelectedAction(null);
-    };
+    const handleOpenUpdateDialog = useCallback((menu: Menu) => {
+        setSelectedMenu(menu);
+        setUpdateDialogOpen(true);
+    }, []);
+
+    const handleCloseUpdateDialog = useCallback(() => {
+        setUpdateDialogOpen(false);
+        setTimeout(() => setSelectedMenu(null), 150);
+    }, []);
+
+    const handleOpenDeleteDialog = useCallback((menu: Menu) => {
+        setSelectedMenu(menu);
+        setDeleteDialogOpen(true);
+    }, []);
+
+    const handleCloseDeleteDialog = useCallback(() => {
+        setDeleteDialogOpen(false);
+        setTimeout(() => setSelectedMenu(null), 150);
+    }, []);
 
     const filteredData = useMemo(() => {
         return (menus?.data || []).map((menu: Menu, index) => {
@@ -73,7 +88,7 @@ export default function MenuManagement() {
                 menu.category,
                 <div key={`price-${menu.id}`}>
                     <p>Base: {convertUSD(menu.price)} </p>
-                    <p>Discount: {menu.discount} </p>
+                    <p>Discount: {menu.discount}%</p>
                     <p>After Discount:{' '} {convertUSD(menu.price - (menu.price * menu.discount) / 100)}</p>
                 </div>,
                 <div key={`status-${menu.id}`} className={cn(
@@ -93,12 +108,7 @@ export default function MenuManagement() {
                                 Edit
                             </span>
                             ),
-                            action: () => {
-                                setSelectedAction({
-                                    data: menu,
-                                    type: 'update',
-                                });
-                            },
+                            action: () => handleOpenUpdateDialog(menu),
                         },
                         {
                             label: (
@@ -108,18 +118,13 @@ export default function MenuManagement() {
                                 </span>
                             ),
                             variant: 'destructive',
-                            action: () => {
-                                setSelectedAction({
-                                    data: menu,
-                                    type: 'delete',
-                                });
-                            },
+                            action: () => handleOpenDeleteDialog(menu),
                         },
                      ]}
                 />,
             ];               
         });
-    }, [currentLimit, currentPage, menus?.data]);
+    }, [menus?.data, handleOpenUpdateDialog, handleOpenDeleteDialog, currentLimit, currentPage]);
 
     const totalPages = useMemo(() => {
         return menus && menus.count !== null ? Math.ceil(menus.count / currentLimit) : 0;
@@ -155,10 +160,17 @@ export default function MenuManagement() {
             />
 
             <DialogUpdateMenu
-                open={selectedAction !== null && selectedAction.type === 'update'}
+                open={updateDialogOpen}
                 refetch={refetch}
-                currentData={selectedAction?.data}
-                handleChangeAction={handleChangeAction}
+                currentData={selectedMenu}
+                handleChangeAction={handleCloseUpdateDialog}
+            />
+
+            <DialogDeleteMenu
+                open={deleteDialogOpen}
+                refetch={refetch}
+                currentData={selectedMenu}
+                handleChangeAction={handleCloseDeleteDialog}
             />
         </div>
     );
