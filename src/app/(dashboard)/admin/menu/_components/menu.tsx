@@ -88,7 +88,7 @@ export default function MenuManagement() {
                 menu.category,
                 <div key={`price-${menu.id}`}>
                     <p>Base: {convertUSD(menu.price)} </p>
-                    <p>Discount: {menu.discount}% </p>
+                    <p>Discount: {menu.discount}%</p>
                     <p>After Discount:{' '} {convertUSD(menu.price - (menu.price * menu.discount) / 100)}</p>
                 </div>,
                 <div key={`status-${menu.id}`} className={cn(
