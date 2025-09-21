@@ -14,12 +14,13 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Table } from "@/validations/table-validation";
 import { HEADER_TABLE_TABLE } from "@/constants/table.constant";
+import DialogCreateTable from "./dialog-create-table";
 
 export default function TableManagement() {
     const supabase = createClient();
     const { currentPage, currentLimit, currentSearch, handleChangePage, handleChangeLimit, handleChangeSearch } = useDataTable();
     
-    const { data: tables, isLoading } = useQuery({
+    const { data: tables, isLoading, refetch } = useQuery({
         queryKey: ['tables', currentPage, currentLimit, currentSearch],
         queryFn: async () => {
             const query = supabase
@@ -130,6 +131,7 @@ export default function TableManagement() {
                         <DialogTrigger asChild>
                             <Button variant="outline">Create</Button>
                         </DialogTrigger>
+                        <DialogCreateTable refetch={refetch}/>
                     </Dialog>
                 </div>
             </div>
