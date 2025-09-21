@@ -92,3 +92,26 @@ export async function updateTable(prevState: TableFormState, formData: FormData 
     status: 'success',
   };
 }
+
+export async function deleteTable(prevState: TableFormState, formData: FormData | null) {
+  if (!formData) {
+    return INITIAL_STATE_TABLE;
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from('tables').delete().eq('id', formData.get('id'));
+
+  if (error) {
+    return {
+      status: 'error',
+      errors: {
+        ...prevState.errors,
+        _form: [error.message],
+      },
+    };
+  }
+
+  return {
+    status: 'success'
+  };
+}
