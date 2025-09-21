@@ -27,3 +27,15 @@ export const INITIAL_TABLE = {
   capacity: '',
   status: '',
 };
+
+export const INITIAL_STATE_TABLE = {
+  status: 'idle',
+  errors: {
+    id: [],
+    name: [],
+    description: [],
+    capacity: [],
+    status: [],
+    _form: [],
+  },
+};
