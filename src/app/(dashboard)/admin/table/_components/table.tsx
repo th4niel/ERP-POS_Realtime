@@ -44,7 +44,7 @@ export default function TableManagement() {
 
       if (currentSearch) {
         query.or(
-          `name.ilike.%${currentSearch}%,capacity.ilike.%${currentSearch}%,status.ilike.%${currentSearch}%`
+          `name.ilike.%${currentSearch}%,status.ilike.%${currentSearch}%,description.ilike.%${currentSearch}%`
         );
       }
 
@@ -148,7 +148,7 @@ export default function TableManagement() {
         <h1 className="text-2xl font-bold">Table Management</h1>
         <div className="flex gap-2">
           <Input
-            placeholder="Search by name, capacity and status"
+            placeholder="Search by name, description or status"
             onChange={(e) => handleChangeSearch(e.target.value)}
           />
           <Dialog>
