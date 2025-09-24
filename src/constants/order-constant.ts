@@ -22,3 +22,14 @@ export const INITIAL_STATE_ORDER = {
         _form: [],
     },
 };
+
+export const STATUS_CREATE_ORDER = [
+    {
+        value: 'reserved',
+        label: 'Reserved'
+    },
+    {
+        value: 'process',
+        label: 'Process',
+    },
+];
