@@ -1,3 +1,5 @@
+'use server';
+
 import { createClient } from "@/lib/supabase/server";
 import { OrderFormState } from "@/types/order";
 import { orderFormSchema } from "@/validations/order-validation";
