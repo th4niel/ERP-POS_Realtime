@@ -23,7 +23,7 @@ export async function createOrder(prevState: OrderFormState, formData: FormData)
 
   const supabase = await createClient();
 
-  const orderId = `Th4niel Cafe-${Date.now()}`
+  const orderId = `TH4NIELCAFE-${Date.now()}`
 
   const [orderResult, tableResult] = await Promise.all([
       supabase.from('orders').insert({
