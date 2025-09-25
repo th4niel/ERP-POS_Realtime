@@ -66,7 +66,7 @@ export async function updateReservation(
   const supabase = await createClient();
 
   const [orderResult, tableResult] = await Promise.all([
-    supabase.from('order').update({
+    supabase.from('orders').update({
       status: formData.get('status'),
     }).eq('id', formData.get('id')),
 
