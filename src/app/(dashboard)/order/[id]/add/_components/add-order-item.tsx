@@ -7,20 +7,21 @@ import useDataTable from "@/hooks/use-data-table";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import CardMenu from "./card-menu";
+import LoadingCardMenu from "./loading-card-menu";
+import CartSection from "./cart";
 
 export default function AddOrderItem({ id }: { id: string }) {
 const supabase = createClient();
   const {
-    currentPage,
     currentSearch,
     currentFilter,
-    handleChangePage,
     handleChangeSearch,
     handleChangeFilter,
   } = useDataTable();
 
   const {data: menus,isLoading: isLoadingMenu} = useQuery({
-    queryKey: ["menus", currentPage, currentSearch],
+    queryKey: ["menus", currentSearch, currentFilter],
     queryFn: async () => {
       const query = supabase
         .from("menus")
@@ -83,8 +84,22 @@ const supabase = createClient();
             </div>
             <Input placeholder="Search..." onChange={(e) => handleChangeSearch(e.target.value)}/>
         </div>
+        {isLoadingMenu && !menus ? (
+          <LoadingCardMenu />
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-3 w-full gap-4">
+            {menus?.data?.map((menu) => (
+              <CardMenu menu={menu} key={`menu-${menu.id}`}/>
+            ))}
+          </div>
+        )}
+        {!isLoadingMenu && menus?.data?.length === 0 && (
+          <div className="text-center w-full">Menu not found</div>
+        )}
       </div>
-      <div className="lg:w-1/3"></div>
+      <div className="lg:w-1/3">
+        <CartSection order={order}/>
+      </div>
     </div>
   );
 }
