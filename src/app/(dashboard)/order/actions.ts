@@ -114,7 +114,7 @@ export async function addOrderItem(
       status: 'error',
       errors: {
         ...prevState,
-        _form: [error.message],
+        _form: [],
       },
     };
   }
@@ -145,6 +145,6 @@ export async function updateStatusOrderItem(
   }
 
   return {
-    status: 'success'
-  }
+    status: 'success',
+  };
 }
