@@ -48,19 +48,19 @@ export const FILTER_MENU = [
         label: 'All',
     },
     {
-        value: 'mains',
-        label: 'Mains',
+        value: 'coffee',
+        label: 'Coffee',
     },
     {
-        value: 'sides',
-        label: 'Sides',
+        value: 'tea',
+        label: 'Tea',
     },
     {
-        value: 'desserts',
-        label: 'Desserts',
+        value: 'pastries',
+        label: 'Pastries',
     },
     {
-        value: 'beverages',
-        label: 'Beverages',
+        value: 'sandwiches',
+        label: 'Sandwiches',
     },
 ];
