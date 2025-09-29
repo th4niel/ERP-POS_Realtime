@@ -16,5 +16,5 @@ export type Cart = {
   total: number;
   notes: string;
   menu: Menu;
-  order_id: string;
+  order_id?: string;
 }
