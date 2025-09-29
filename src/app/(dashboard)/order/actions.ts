@@ -58,7 +58,7 @@ export async function createOrder(prevState: OrderFormState, formData: FormData)
   return {
     status: 'success',
   };
-}
+};
 
 export async function updateReservation(
   prevState: FormState,
@@ -95,7 +95,7 @@ export async function updateReservation(
   return {
     status: 'success',
   };
-}
+};
 
 export async function addOrderItem(
   prevState: OrderFormState,
@@ -114,10 +114,37 @@ export async function addOrderItem(
       status: 'error',
       errors: {
         ...prevState,
-        _form: [],
+        _form: [error.message],
       },
     };
   }
 
   redirect(`/order/${data.order_id}`);
 };
+
+export async function updateStatusOrderItem(
+  prevState: FormState,
+  formData: FormData,
+) {
+  const supabase = await createClient();
+
+  const {error} = await supabase.from('orders_menus')
+  .update({
+    status: formData.get('status'),
+  })
+  .eq('id', formData.get('id'));
+
+  if(error) {
+    return{
+      status: 'error',
+      errors: {
+        ...prevState,
+        _form: [error.message],
+      },
+    };
+  }
+
+  return {
+    status: 'success'
+  }
+}
