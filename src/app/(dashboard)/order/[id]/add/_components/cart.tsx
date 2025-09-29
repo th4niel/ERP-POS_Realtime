@@ -9,13 +9,18 @@ import { Cart } from "@/types/order";
 import { Menu } from "@/validations/menu-validation";
 import Image from "next/image";
 import { Dispatch, SetStateAction } from "react";
+import { Loader2 } from "lucide-react";
 
 export default function CartSection({
+  id,
   order,
   carts,
   setCarts,
   onAddToCart,
+  isLoading,
+  onOrder,
 }: {
+  id: string;
   order:
     | {
         customer_name: string;
@@ -27,12 +32,16 @@ export default function CartSection({
   carts: Cart[];
   setCarts: Dispatch<SetStateAction<Cart[]>>;
   onAddToCart: (item: Menu, type: "decrement" | "increment") => void;
+  isLoading: boolean;
+  onOrder: () => void;
 }) {
   const debounce = useDebounce();
   const handleAddNote = (id: string, notes: string) => {
-    setCarts(carts.map((item) => (item.menu_id === id ? {...item, notes} : item)),
+    setCarts(
+      carts.map((item) => (item.menu_id === id ? { ...item, notes } : item))
     );
   };
+
   return (
     <Card className="w-full shadow-sm">
       <CardContent className="space-y-4">
@@ -83,33 +92,38 @@ export default function CartSection({
                     onChange={(e) =>
                       debounce(
                         () => handleAddNote(item.menu!.id, e.target.value),
-                        500,
+                        500
                       )
                     }
                   />
                   <div className="flex items-center gap-4">
-                    <Button 
-                        className="font-semibold cursor-pointer" 
-                        variant="outline" 
-                        onClick={() => onAddToCart(item.menu!, 'decrement')}
+                    <Button
+                      className="font-semibold cursor-pointer"
+                      variant="outline"
+                      onClick={() => onAddToCart(item.menu!, "decrement")}
                     >
-                        -
+                      -
                     </Button>
                     <p className="font-semibold">{item.quantity}</p>
-                    <Button 
-                        className="font-semibold cursor-pointer" 
-                        variant="outline" 
-                        onClick={() => onAddToCart(item.menu!, 'increment')}
+                    <Button
+                      className="font-semibold cursor-pointer"
+                      variant="outline"
+                      onClick={() => onAddToCart(item.menu!, "increment")}
                     >
-                        +
+                      +
                     </Button>
-                </div>
+                  </div>
                 </div>
               </div>
             ))
           ) : (
             <p className="text-sm">No item in cart</p>
-          )}
+          )} 
+          <form>
+            <Button formAction={onOrder} className="w-full font-semibold bg-teal-500 hover:bg-teal-600 cursor-pointer text-white">
+                {isLoading ? <Loader2 className="animate-spin"/> : 'Order'}
+            </Button>
+          </form>
         </div>
       </CardContent>
     </Card>
