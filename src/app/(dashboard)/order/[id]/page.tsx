@@ -7,6 +7,13 @@ export const metadata = {
  
 };
 
+declare global {
+    interface Window{
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        snap: any;
+    }
+}
+
 export default async function DetailOrderPage({params}: {params: Promise<{id:string}>}) {
     const {id} = await params;
   return (
