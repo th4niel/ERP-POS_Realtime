@@ -13,9 +13,9 @@ export function getImageData(event: ChangeEvent<HTMLInputElement>) {
 }
 
 export function convertUSD(number: number) {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('id-ID', {
     style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
+    currency: 'IDR',
+    minimumFractionDigits: 0,
   }).format(number);
 }
