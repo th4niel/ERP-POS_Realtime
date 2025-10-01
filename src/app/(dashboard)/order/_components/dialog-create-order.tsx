@@ -13,7 +13,7 @@ import FormSelect from "@/components/common/form-select";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
-export default function DialogCreateOrder({ refetch, tables, }: { refetch: () => void; tables: Table[] | undefined | null;  }) {
+export default function DialogCreateOrder({ tables, }: { tables: Table[] | undefined | null;  }) {
         const form = useForm<OrderForm>({
             resolver: zodResolver(orderFormSchema),
             defaultValues: INITIAL_ORDER,
@@ -43,9 +43,8 @@ export default function DialogCreateOrder({ refetch, tables, }: { refetch: () =>
                 toast.success('Create Order Success');
                 form.reset();
                 document.querySelector<HTMLButtonElement>('[data-state="open"]')?.click();
-                refetch();
             }
-        }, [createOrderState, form, refetch]);
+        }, [createOrderState, form]);
         
     return (
         <DialogContent className="sm:max-w-[425px] max-h-[90vh]">
