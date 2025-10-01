@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import useDataTable from "@/hooks/use-data-table";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Ban, Link2Icon, Pencil, ScrollText, Trash2 } from "lucide-react";
+import { Ban, Link2Icon, ScrollText } from "lucide-react";
 import {
   useMemo,
   useState,
@@ -25,6 +25,7 @@ import DialogCreateOrder from "./dialog-create-order";
 import { updateReservation } from "../actions";
 import { INITIAL_STATE_ACTION } from "@/constants/general-constant";
 import Link from "next/link";
+import { useAuthStore } from "@/stores/auth-store";
 
 export default function OrderManagement() {
   const supabase = createClient();
@@ -36,6 +37,8 @@ export default function OrderManagement() {
     handleChangeLimit,
     handleChangeSearch,
   } = useDataTable();
+
+  const profile = useAuthStore((state) => state.profile);
 
   const {
     data: orders,
@@ -120,23 +123,26 @@ export default function OrderManagement() {
     INITIAL_STATE_ACTION
   );
 
-  const handleReservation = useCallback(async ({
-    id,
-    table_id,
-    status,
-  }: {
-    id: string;
-    table_id: string;
-    status: string;
-  }) => {
-    const formData = new FormData();
-    Object.entries({ id, table_id, status }).forEach(([Key, value]) => {
-      formData.append(Key, value);
-    });
-    startTransition(() => {
-      reservedAction(formData);
-    });
-  },[reservedAction]);
+  const handleReservation = useCallback(
+    async ({
+      id,
+      table_id,
+      status,
+    }: {
+      id: string;
+      table_id: string;
+      status: string;
+    }) => {
+      const formData = new FormData();
+      Object.entries({ id, table_id, status }).forEach(([Key, value]) => {
+        formData.append(Key, value);
+      });
+      startTransition(() => {
+        reservedAction(formData);
+      });
+    },
+    [reservedAction]
+  );
 
   useEffect(() => {
     if (reservedState?.status === "error") {
@@ -152,30 +158,33 @@ export default function OrderManagement() {
     }
   }, [reservedState, refetchTables, refetch]);
 
-  const reservedActionList = useMemo(() => [
-    {
-      label: (
-        <span className="flex items-center gap-2">
-          <Link2Icon />
-          Process
-        </span>
-      ),
-      action: (id: string, table_id: string) => {
-        handleReservation({ id, table_id, status: "process" });
+  const reservedActionList = useMemo(
+    () => [
+      {
+        label: (
+          <span className="flex items-center gap-2">
+            <Link2Icon />
+            Process
+          </span>
+        ),
+        action: (id: string, table_id: string) => {
+          handleReservation({ id, table_id, status: "process" });
+        },
       },
-    },
-    {
-      label: (
-        <span className="flex items-center gap-2">
-          <Ban className="text-red-500" />
-          Cancel
-        </span>
-      ),
-      action: (id: string, table_id: string) => {
-        handleReservation({ id, table_id, status: "canceled" });
+      {
+        label: (
+          <span className="flex items-center gap-2">
+            <Ban className="text-red-500" />
+            Cancel
+          </span>
+        ),
+        action: (id: string, table_id: string) => {
+          handleReservation({ id, table_id, status: "canceled" });
+        },
       },
-    },
-  ], [handleReservation]);
+    ],
+    [handleReservation]
+  );
 
   const filteredData = useMemo(() => {
     return (orders?.data || []).map((order, index) => {
@@ -199,7 +208,7 @@ export default function OrderManagement() {
         <DropdownAction
           key={``}
           menu={
-            order.status === "reserved"
+            order.status === "reserved" && profile.role !== "kitchen"
               ? reservedActionList.map((item) => ({
                   label: item.label,
                   action: () =>
@@ -226,7 +235,7 @@ export default function OrderManagement() {
         />,
       ];
     });
-  }, [orders?.data, currentLimit, currentPage, reservedActionList]);
+  }, [orders?.data, currentLimit, currentPage, reservedActionList, profile.role]);
 
   return (
     <div className="w-full">
@@ -237,12 +246,14 @@ export default function OrderManagement() {
             placeholder="Search by name, description or status"
             onChange={(e) => handleChangeSearch(e.target.value)}
           />
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline">Create</Button>
-            </DialogTrigger>
-            <DialogCreateOrder tables={tables} refetch={refetch} />
-          </Dialog>
+          {profile.role !== "kitchen" && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">Create</Button>
+              </DialogTrigger>
+              <DialogCreateOrder tables={tables} refetch={refetch} />
+            </Dialog>
+          )}
         </div>
       </div>
 
