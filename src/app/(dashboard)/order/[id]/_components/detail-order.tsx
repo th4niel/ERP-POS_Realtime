@@ -4,7 +4,7 @@ import DataTable from "@/components/common/data-table";
 import { Button } from "@/components/ui/button";
 import { HEADER_TABLE_DETAIL_ORDER } from "@/constants/order-constant";
 import useDataTable from "@/hooks/use-data-table";
-import { createClientSupabase } from "@/lib/supabase/default";
+import { createClient} from "@/lib/supabase/client";
 import { cn, convertUSD } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
@@ -24,7 +24,7 @@ import { INITIAL_STATE_ACTION } from "@/constants/general-constant";
 import { useAuthStore } from "@/stores/auth-store";
 
 export default function DetailOrder({ id }: { id: string }) {
-  const supabase = createClientSupabase();
+  const supabase = createClient();
   const { currentPage, currentLimit, handleChangePage, handleChangeLimit } =
     useDataTable();
   const profile = useAuthStore((state) => state.profile);
@@ -70,7 +70,7 @@ export default function DetailOrder({ id }: { id: string }) {
       return () => {
         supabase.removeChannel(channel);
       };
-  }, [order?.id, supabase]);
+  }, [order?.id, supabase,]);
 
   const {
     data: orderMenu,
