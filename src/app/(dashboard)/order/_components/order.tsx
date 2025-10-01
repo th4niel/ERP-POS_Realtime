@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import useDataTable from "@/hooks/use-data-table";
-import { createClient } from "@/lib/supabase/client";
+import { createClientSupabase } from "@/lib/supabase/default";
 import { useQuery } from "@tanstack/react-query";
 import { Ban, Link2Icon, ScrollText } from "lucide-react";
 import {
@@ -28,7 +28,7 @@ import Link from "next/link";
 import { useAuthStore } from "@/stores/auth-store";
 
 export default function OrderManagement() {
-  const supabase = createClient();
+  const supabase = createClientSupabase();
   const {
     currentPage,
     currentLimit,
@@ -43,7 +43,7 @@ export default function OrderManagement() {
   const {
     data: orders,
     isLoading,
-    refetch,
+    refetch: refetchOrders,
   } = useQuery({
     queryKey: ["orders", currentPage, currentLimit, currentSearch],
     queryFn: async () => {
@@ -87,6 +87,28 @@ export default function OrderManagement() {
       return result.data;
     },
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("change-order")
+      .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "orders",
+      },
+      () => {
+        refetchOrders();
+        refetchTables();
+      },
+      )
+      .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+  }, [supabase,refetchOrders,refetchTables]);
 
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -153,10 +175,10 @@ export default function OrderManagement() {
 
     if (reservedState?.status === "success") {
       toast.success("Update Reservation Success");
-      refetch();
+      refetchOrders();
       refetchTables();
     }
-  }, [reservedState, refetchTables, refetch]);
+  }, [reservedState, refetchTables, refetchOrders]);
 
   const reservedActionList = useMemo(
     () => [
@@ -251,7 +273,7 @@ export default function OrderManagement() {
               <DialogTrigger asChild>
                 <Button variant="outline">Create</Button>
               </DialogTrigger>
-              <DialogCreateOrder tables={tables} refetch={refetch} />
+              <DialogCreateOrder tables={tables}/>
             </Dialog>
           )}
         </div>
