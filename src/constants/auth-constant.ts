@@ -60,7 +60,7 @@ export const ROLE_LIST = [
   label: 'Cashier',
   },
   {
-  value: 'barista',
-  label: 'Barista',
+  value: 'kitchen',
+  label: 'Kitchen',
   },
 ]
