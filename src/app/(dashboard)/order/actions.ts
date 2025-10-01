@@ -185,7 +185,7 @@ export async function generatePayment(
   const parameter = {
     transaction_details: {
       order_id: `${orderId}`,
-      gross_amount: parseFloat(grossAmount as string),
+      gross_amount: Math.round(parseFloat(grossAmount as string)),
     },
     customer_details: {
       first_name: customerName,
