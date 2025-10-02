@@ -53,7 +53,7 @@ export default function Login() {
         loginAction(null);
       });
     }
-  }, [loginState]);
+  }, [loginState, loginAction]);
 
   return (
     <Card>
