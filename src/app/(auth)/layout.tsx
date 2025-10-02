@@ -14,7 +14,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
       </div>
       <div className="flex w-full max-w-sm flex-col gap-6">
         <div className="flex items-center gap-2 self-center font-medium">
-          <div className="bg-teal-500 flex p-2 items-center justify-center rounded-md">
+          <div className="bg-fuchsia-500 flex p-2 items-center justify-center rounded-md">
             <Coffee className="size-4" />
           </div>
           Th4niel Cafe

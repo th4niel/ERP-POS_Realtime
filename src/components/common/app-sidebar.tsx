@@ -44,7 +44,7 @@ export default function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <div className="font-semibold">
-                <div className="bg-teal-500 flex p-2 items-center justify-center rounded-md">
+                <div className="bg-fuchsia-500 flex p-2 items-center justify-center rounded-md">
                   <Coffee className="size-4" />
                 </div>
                 Th4niel Cafe
