@@ -4,6 +4,7 @@ import DataTable from "@/components/common/data-table";
 import DropdownAction from "@/components/common/dropdown-action";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import useDataTable from "@/hooks/use-data-table";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -16,9 +17,9 @@ import DialogCreateMenuIngredient from "./dialog-create-menu-ingredient";
 import DialogUpdateMenuIngredient from "./dialog-update-menu-ingredient";
 import DialogDeleteMenuIngredient from "./dialog-delete-menu-ingredient";
 
-export default function MenuIngredientsTab() {
+export default function MenuIngredientsManagement() {
     const supabase = createClient();
-    const { currentPage, currentLimit, handleChangePage, handleChangeLimit } = useDataTable();
+    const { currentPage, currentLimit, currentSearch, handleChangePage, handleChangeLimit, handleChangeSearch } = useDataTable();
 
     const { data: menus } = useQuery({
         queryKey: ['menus-list'],
@@ -43,7 +44,7 @@ export default function MenuIngredientsTab() {
     });
 
     const { data: ingredients, isLoading, refetch } = useQuery({
-        queryKey: ['menu-ingredients', currentPage, currentLimit],
+        queryKey: ['menu-ingredients', currentPage, currentLimit, currentSearch],
         queryFn: async () => {
             const query = supabase
                 .from('menu_ingredients')
@@ -54,6 +55,10 @@ export default function MenuIngredientsTab() {
                 `, { count: 'exact' })
                 .range((currentPage - 1) * currentLimit, currentPage * currentLimit - 1)
                 .order('created_at');
+
+            if (currentSearch) {
+                query.or(`menus.name.ilike.%${currentSearch}%,inventory_items.name.ilike.%${currentSearch}%`);
+            }
 
             const result = await query;
 
@@ -130,21 +135,25 @@ export default function MenuIngredientsTab() {
     }, [ingredients, currentLimit]);
 
     return (
-        <div className="w-full space-y-4">
-            <div className="flex justify-between items-center">
-                <p className="text-sm text-muted-foreground">
-                    Map menu items to inventory ingredients (recipes)
-                </p>
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <Button variant="outline" size="sm">Add Ingredient</Button>
-                    </DialogTrigger>
-                    <DialogCreateMenuIngredient 
-                        refetch={refetch} 
-                        menus={menus}
-                        items={items}
+        <div className="w-full">
+            <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
+                <h1 className="text-2xl font-bold">Menu Ingredients Management</h1>
+                <div className="flex gap-2">
+                    <Input
+                        placeholder="Search by menu or ingredient"
+                        onChange={(e) => handleChangeSearch(e.target.value)}
                     />
-                </Dialog>
+                    <Dialog>
+                        <DialogTrigger asChild>
+                            <Button variant="outline">Create</Button>
+                        </DialogTrigger>
+                        <DialogCreateMenuIngredient 
+                            refetch={refetch} 
+                            menus={menus}
+                            items={items}
+                        />
+                    </Dialog>
+                </div>
             </div>
 
             <DataTable
