@@ -1,4 +1,3 @@
-// File: src/app/(dashboard)/admin/supplier/_components/supplier.tsx
 'use client';
 
 import DataTable from "@/components/common/data-table";

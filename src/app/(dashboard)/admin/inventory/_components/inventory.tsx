@@ -17,9 +17,28 @@ import { HEADER_TABLE_INVENTORY } from "@/constants/inventory-constant";
 import DialogCreateInventory from "./dialog-create-inventory";
 import DialogUpdateInventory from "./dialog-update-inventory";
 import DialogDeleteInventory from "./dialog-delete-inventory";
+import { Card, CardContent } from "@/components/ui/card";
+import DialogAdjustStock from "./dialog-adjust-stock";
+
+const TABS = [
+    { value: 'items', label: 'Inventory Items' },
+    { value: 'transactions', label: 'Transactions' }
+];
+
+const HEADER_TABLE_TRANSACTIONS = [
+    'No',
+    'Item',
+    'Type',
+    'Quantity',
+    'Reference',
+    'Notes',
+    'Date'
+];
 
 export default function InventoryManagement() {
     const supabase = createClient();
+    const [activeTab, setActiveTab] = useState('items');
+    const [adjustStockOpen, setAdjustStockOpen] = useState(false);
     const { currentPage, currentLimit, currentSearch, handleChangePage, handleChangeLimit, handleChangeSearch } = useDataTable();
 
     const { data: suppliers } = useQuery({
@@ -34,7 +53,10 @@ export default function InventoryManagement() {
                 toast.error('Failed to load suppliers');
                 return [];
             }
-            return data;
+            return (data || []).map(s => ({
+                id: s.id.toString(),
+                name: s.name
+            }));
         },
     });
 
@@ -60,6 +82,26 @@ export default function InventoryManagement() {
 
             return result;
         },
+        enabled: activeTab === 'items'
+    });
+
+    const { data: transactions, isLoading: isLoadingTransactions } = useQuery({
+        queryKey: ['transactions', currentPage, currentLimit],
+        queryFn: async () => {
+            const result = await supabase
+                .from('inventory_transactions')
+                .select('*, inventory_items(name)', { count: 'exact' })
+                .range((currentPage - 1) * currentLimit, currentPage * currentLimit - 1)
+                .order('created_at', { ascending: false });
+
+            if (result.error)
+                toast.error('Get Transactions failed', {
+                    description: result.error.message,
+                });
+
+            return result;
+        },
+        enabled: activeTab === 'transactions'
     });
 
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
@@ -87,97 +129,154 @@ export default function InventoryManagement() {
     }, []);
 
     const filteredData = useMemo(() => {
-        return (inventory?.data || []).map((item: InventoryItem, index) => {
-            const isLowStock = item.current_stock <= item.minimum_stock;
-            
-            return [
+        if (activeTab === 'items') {
+            return (inventory?.data || []).map((item: InventoryItem, index) => {
+                const isLowStock = item.current_stock <= item.minimum_stock;
+                
+                return [
+                    currentLimit * (currentPage - 1) + index + 1,
+                    <div key={`item-${item.id}`} className="flex flex-col">
+                        <span className="font-medium">{item.name}</span>
+                        {item.suppliers && (
+                            <span className="text-xs text-muted-foreground">
+                                Supplier: {item.suppliers.name}
+                            </span>
+                        )}
+                    </div>,
+                    <span key={`cat-${item.id}`} className="capitalize">
+                        {item.category.replace('-', ' ')}
+                    </span>,
+                    <div key={`stock-${item.id}`} className="flex items-center gap-2">
+                        {item.current_stock} {item.unit}
+                        {isLowStock && (
+                            <AlertTriangle className="size-4 text-red-500" />
+                        )}
+                    </div>,
+                    <span key={`min-${item.id}`}>
+                        {item.minimum_stock} {item.unit}
+                    </span>,
+                    <span key={`price-${item.id}`}>
+                        {convertUSD(item.unit_price)}
+                    </span>,
+                    <div
+                        key={`status-${item.id}`}
+                        className={cn(
+                            'px-2 py-1 rounded-full text-white w-fit text-xs',
+                            isLowStock ? 'bg-red-500' : 'bg-green-500'
+                        )}
+                    >
+                        {isLowStock ? 'Low Stock' : 'In Stock'}
+                    </div>,
+                    <DropdownAction
+                        key={`dropdown-${item.id}`}
+                        menu={[
+                            {
+                                label: (
+                                    <span className="flex items-center gap-2">
+                                        <Pencil />
+                                        Edit
+                                    </span>
+                                ),
+                                action: () => handleOpenUpdateDialog(item),
+                            },
+                            {
+                                label: (
+                                    <span className="flex items-center gap-2">
+                                        <Trash2 className="text-red-400" />
+                                        Delete
+                                    </span>
+                                ),
+                                variant: 'destructive',
+                                action: () => handleOpenDeleteDialog(item),
+                            },
+                        ]}
+                    />,
+                ];
+            });
+        } else {
+            return (transactions?.data || []).map((transaction: any, index) => [
                 currentLimit * (currentPage - 1) + index + 1,
-                <div key={`item-${item.id}`} className="flex flex-col">
-                    <span className="font-medium">{item.name}</span>
-                    {item.suppliers && (
-                        <span className="text-xs text-muted-foreground">
-                            Supplier: {item.suppliers.name}
-                        </span>
-                    )}
-                </div>,
-                <span key={`cat-${item.id}`} className="capitalize">
-                    {item.category.replace('-', ' ')}
-                </span>,
-                <div key={`stock-${item.id}`} className="flex items-center gap-2">
-                    {item.current_stock} {item.unit}
-                    {isLowStock && (
-                        <AlertTriangle className="size-4 text-red-500" />
-                    )}
-                </div>,
-                <span key={`min-${item.id}`}>
-                    {item.minimum_stock} {item.unit}
-                </span>,
-                <span key={`price-${item.id}`}>
-                    {convertUSD(item.unit_price)}
-                </span>,
+                transaction.inventory_items?.name || '-',
                 <div
-                    key={`status-${item.id}`}
+                    key={`type-${transaction.id}`}
                     className={cn(
-                        'px-2 py-1 rounded-full text-white w-fit text-xs',
-                        isLowStock ? 'bg-red-500' : 'bg-green-500'
+                        'px-2 py-1 rounded-full text-white w-fit text-xs capitalize',
+                        transaction.transaction_type === 'in' ? 'bg-green-500' : 'bg-red-500'
                     )}
                 >
-                    {isLowStock ? 'Low Stock' : 'In Stock'}
+                    {transaction.transaction_type}
                 </div>,
-                <DropdownAction
-                    key={`dropdown-${item.id}`}
-                    menu={[
-                        {
-                            label: (
-                                <span className="flex items-center gap-2">
-                                    <Pencil />
-                                    Edit
-                                </span>
-                            ),
-                            action: () => handleOpenUpdateDialog(item),
-                        },
-                        {
-                            label: (
-                                <span className="flex items-center gap-2">
-                                    <Trash2 className="text-red-400" />
-                                    Delete
-                                </span>
-                            ),
-                            variant: 'destructive',
-                            action: () => handleOpenDeleteDialog(item),
-                        },
-                    ]}
-                />,
-            ];
-        });
-    }, [inventory?.data, handleOpenUpdateDialog, handleOpenDeleteDialog, currentLimit, currentPage]);
+                <span key={`qty-${transaction.id}`} className={cn(
+                    transaction.transaction_type === 'in' ? 'text-green-500' : 'text-red-500'
+                )}>
+                    {transaction.quantity > 0 ? '+' : ''}{transaction.quantity}
+                </span>,
+                <div key={`ref-${transaction.id}`} className="text-xs">
+                    <span className="capitalize">{transaction.reference_type || '-'}</span>
+                    {transaction.reference_id && <span> #{transaction.reference_id}</span>}
+                </div>,
+                transaction.notes || '-',
+                new Date(transaction.created_at).toLocaleString('id-ID', {
+                    dateStyle: 'short',
+                    timeStyle: 'short'
+                })
+            ]);
+        }
+    }, [activeTab, inventory?.data, transactions?.data, handleOpenUpdateDialog, handleOpenDeleteDialog, currentLimit, currentPage]);
 
     const totalPages = useMemo(() => {
-        return inventory && inventory.count !== null ? Math.ceil(inventory.count / currentLimit) : 0;
-    }, [inventory, currentLimit]);
+        const data = activeTab === 'items' ? inventory : transactions;
+        return data && data.count !== null ? Math.ceil(data.count / currentLimit) : 0;
+    }, [activeTab, inventory, transactions, currentLimit]);
 
     return (
         <div className="w-full">
             <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
                 <h1 className="text-2xl font-bold">Inventory Management</h1>
                 <div className="flex gap-2">
-                    <Input
-                        placeholder="Search by name or category"
-                        onChange={(e) => handleChangeSearch(e.target.value)}
-                    />
-                    <Dialog>
-                        <DialogTrigger asChild>
-                            <Button variant="outline">Create</Button>
-                        </DialogTrigger>
-                        <DialogCreateInventory refetch={refetch} suppliers={suppliers} />
-                    </Dialog>
+                    {activeTab === 'items' && (
+                        <>
+                            <Input
+                                placeholder="Search by name or category"
+                                onChange={(e) => handleChangeSearch(e.target.value)}
+                            />
+                            <Button 
+                                variant="outline"
+                                onClick={() => setAdjustStockOpen(true)}
+                            >
+                                Adjust Stock
+                            </Button>
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline">Create</Button>
+                                </DialogTrigger>
+                                <DialogCreateInventory refetch={refetch} suppliers={suppliers} />
+                            </Dialog>
+                        </>
+                    )}
                 </div>
             </div>
 
+            <Card className="mb-4">
+                <CardContent className="p-2">
+                    <div className="flex gap-2">
+                        {TABS.map(tab => (
+                            <Button
+                                key={tab.value}
+                                variant={activeTab === tab.value ? 'default' : 'ghost'}
+                                onClick={() => setActiveTab(tab.value)}
+                            >
+                                {tab.label}
+                            </Button>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+
             <DataTable
-                header={HEADER_TABLE_INVENTORY}
+                header={activeTab === 'items' ? HEADER_TABLE_INVENTORY : HEADER_TABLE_TRANSACTIONS}
                 data={filteredData}
-                isLoading={isLoading}
+                isLoading={activeTab === 'items' ? isLoading : isLoadingTransactions}
                 totalPages={totalPages}
                 currentPage={currentPage}
                 currentLimit={currentLimit}
@@ -185,20 +284,34 @@ export default function InventoryManagement() {
                 onChangeLimit={handleChangeLimit}
             />
 
-            <DialogUpdateInventory
-                open={updateDialogOpen}
-                refetch={refetch}
-                currentData={selectedItem}
-                handleChangeAction={handleCloseUpdateDialog}
-                suppliers={suppliers}
-            />
+            {activeTab === 'items' && (
+                <>
+                    <DialogUpdateInventory
+                        open={updateDialogOpen}
+                        refetch={refetch}
+                        currentData={selectedItem}
+                        handleChangeAction={handleCloseUpdateDialog}
+                        suppliers={suppliers}
+                    />
 
-            <DialogDeleteInventory
-                open={deleteDialogOpen}
-                refetch={refetch}
-                currentData={selectedItem}
-                handleChangeAction={handleCloseDeleteDialog}
-            />
+                    <DialogDeleteInventory
+                        open={deleteDialogOpen}
+                        refetch={refetch}
+                        currentData={selectedItem}
+                        handleChangeAction={handleCloseDeleteDialog}
+                    />
+
+                    <DialogAdjustStock
+                        open={adjustStockOpen}
+                        onOpenChange={setAdjustStockOpen}
+                        refetch={refetch}
+                        items={(inventory?.data || []).map((item: InventoryItem) => ({
+                            id: item.id,
+                            name: item.name
+                        }))}
+                    />
+                </>
+            )}
         </div>
     );
 }

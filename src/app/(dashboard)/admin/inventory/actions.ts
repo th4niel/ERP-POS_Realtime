@@ -127,3 +127,78 @@ export async function deleteInventoryItem(
 
   return { status: 'success' };
 }
+
+export async function adjustStock(
+  prevState: any,
+  formData: FormData | null
+) {
+  if (!formData) {
+    return { status: 'idle', errors: {} };
+  }
+
+  const itemId = parseInt(formData.get('item_id') as string);
+  const transactionType = formData.get('transaction_type') as string;
+  const quantity = parseFloat(formData.get('quantity') as string);
+  const notes = formData.get('notes') as string;
+
+  if (!itemId || !transactionType || !quantity) {
+    return {
+      status: 'error',
+      errors: { _form: ['Invalid input data'] },
+    };
+  }
+
+  const supabase = await createClient();
+
+  try {
+    const actualQuantity = transactionType === 'out' ? -quantity : quantity;
+
+    if (transactionType === 'in') {
+      const { error: addError } = await supabase.rpc('add_inventory_stock', {
+        p_item_id: itemId,
+        p_quantity: quantity,
+      });
+
+      if (addError) throw addError;
+    } else {
+      const { data: item } = await supabase
+        .from('inventory_items')
+        .select('current_stock')
+        .eq('id', itemId)
+        .single();
+
+      if (!item || item.current_stock < quantity) {
+        return {
+          status: 'error',
+          errors: { _form: ['Insufficient stock'] },
+        };
+      }
+
+      const { error: deductError } = await supabase.rpc('deduct_inventory_stock', {
+        p_item_id: itemId,
+        p_quantity: quantity,
+      });
+
+      if (deductError) throw deductError;
+    }
+
+    const { error: transactionError } = await supabase
+      .from('inventory_transactions')
+      .insert({
+        item_id: itemId,
+        transaction_type: transactionType,
+        quantity: actualQuantity,
+        reference_type: 'manual',
+        notes: notes || `Manual ${transactionType === 'in' ? 'stock in' : 'stock out'}`,
+      });
+
+    if (transactionError) throw transactionError;
+
+    return { status: 'success' };
+  } catch (error: any) {
+    return {
+      status: 'error',
+      errors: { _form: [error.message || 'Failed to adjust stock'] },
+    };
+  }
+}

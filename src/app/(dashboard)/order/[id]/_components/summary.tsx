@@ -30,11 +30,13 @@ export default function Summary({
   id: string;
 }) {
   const { grandTotal, totalPrice, tax, service } = usePricing(orderMenu);
-  const profile = useAuthStore((state) => state.profile)
+  const profile = useAuthStore((state) => state.profile);
 
   const isAllServed = useMemo(() => {
     return orderMenu?.every((item) => item.status === "served");
   }, [orderMenu]);
+
+  const canPay = profile.role !== 'kitchen';
 
   const [
     generatePaymentState,
@@ -63,6 +65,7 @@ export default function Summary({
       window.snap.pay(generatePaymentState.data.payment_token);
     }
   }, [generatePaymentState]);
+
   return (
     <Card className="w-full shadow-sm">
       <CardContent className="space-y-4">
@@ -102,18 +105,18 @@ export default function Summary({
             <p className="text-lg font-semibold">Total</p>
             <p className="text-lg font-semibold">{convertUSD(grandTotal)}</p>
           </div>
-          {order?.status === "process" && profile.role !=='kitchen' && (
+          {order?.status === "process" && canPay && (
             <Button
               type="submit"
               onClick={handleGeneratePayment}
               disabled={!isAllServed || isPendingGeneratePayment}
               className="w-full font-semibold bg-teal-500 hover:bg-teal-600 text-white cursor-pointer"
             >
-                {isPendingGeneratePayment ? (
-                    <Loader2 className="animate-spin"/>
-                ): (
-                    'Pay'
-                )}
+              {isPendingGeneratePayment ? (
+                <Loader2 className="animate-spin"/>
+              ) : (
+                'Pay'
+              )}
             </Button>
           )}
         </div>

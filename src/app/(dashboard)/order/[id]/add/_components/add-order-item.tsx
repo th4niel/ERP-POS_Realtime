@@ -10,14 +10,27 @@ import { toast } from "sonner";
 import CardMenu from "./card-menu";
 import LoadingCardMenu from "./loading-card-menu";
 import CartSection from "./cart";
-import { startTransition, useActionState, useState } from "react";
+import { startTransition, useActionState, useState, useEffect } from "react";
 import { Cart } from "@/types/order";
 import { Menu } from "@/validations/menu-validation";
-import { addOrderItem } from "../../../actions";
 import { INITIAL_STATE_ACTION } from "@/constants/general-constant";
+import { processOrderWithInventory } from "../actions";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/auth-store";
 
 export default function AddOrderItem({ id }: { id: string }) {
   const supabase = createClient();
+  const router = useRouter();
+  const profile = useAuthStore((state) => state.profile);
+  
+  useEffect(() => {
+    if (profile.role === 'kitchen') {
+      router.push(`/order/${id}`);
+      toast.error('Access Denied', {
+        description: 'Kitchen staff cannot add order items'
+      });
+    }
+  }, [profile.role, id, router]);
   const {
     currentSearch,
     currentFilter,
@@ -103,28 +116,42 @@ export default function AddOrderItem({ id }: { id: string }) {
         );
       }
     } else {
-      setCarts([...carts, {menu_id: menu.id, quantity: 1, total: menu.price, notes: '', menu},      
-      ]);
+      setCarts([...carts, {menu_id: menu.id, quantity: 1, total: menu.price, notes: '', menu}]);
     }
   };
+
   const [addOrderItemState, addOrderItemAction, isPendingAddOrderItem] =
-      useActionState(addOrderItem, INITIAL_STATE_ACTION);
+    useActionState(processOrderWithInventory, INITIAL_STATE_ACTION);
   
-    const handleOrder = async () => {
-      const data = {
-        order_id: id,
-        items: carts.map((item) => ({
-          order_id: order?.id ?? '',
-          ...item,
-          status: "pending",
-        })),
-      };
-  
-      startTransition(() => {
-        addOrderItemAction(data);
-      });
+  const handleOrder = async () => {
+    const data = {
+      order_id: id,
+      items: carts.map((item) => ({
+        order_id: order?.id ?? '',
+        menu_id: item.menu_id,
+        quantity: item.quantity,
+        notes: item.notes,
+        status: "pending",
+      })),
     };
 
+    startTransition(() => {
+      addOrderItemAction(data);
+    });
+  };
+
+  useEffect(() => {
+    if (addOrderItemState?.status === 'error') {
+      toast.error('Add Order Failed', {
+        description: addOrderItemState.errors?._form?.[0],
+      });
+    }
+
+    if (addOrderItemState?.status === 'success') {
+      toast.success('Order Added Successfully');
+      router.push(`/order/${id}`);
+    }
+  }, [addOrderItemState, id, router]);
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full">
@@ -132,7 +159,7 @@ export default function AddOrderItem({ id }: { id: string }) {
         <div className="flex flex-col items-center justify-between gap-4 w-full lg:flex-row">
           <div className="flex flex-col lg:flex-row items-center gap-4">
             <h1 className="text-2xl font-bold">Menu</h1>
-            <div className="flex  gap-2">
+            <div className="flex gap-2">
               {FILTER_MENU.map((item) => (
                 <Button
                   key={item.value}

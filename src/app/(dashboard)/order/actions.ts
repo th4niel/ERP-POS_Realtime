@@ -2,11 +2,11 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { FormState } from "@/types/general";
-import { Cart, OrderFormState } from "@/types/order";
+import { OrderFormState } from "@/types/order";
 import { orderFormSchema } from "@/validations/order-validation";
-import { redirect } from "next/navigation";
 import midtrans from "midtrans-client";
 import { environment } from "@/configs/environment";
+import { cookies } from "next/headers";
 
 export async function createOrder(
   prevState: OrderFormState,
@@ -29,7 +29,6 @@ export async function createOrder(
   }
 
   const supabase = await createClient();
-
   const orderId = `TH4NIELCAFE-${Date.now()}`;
 
   const [orderResult, tableResult] = await Promise.all([
@@ -115,31 +114,6 @@ export async function updateReservation(
   };
 }
 
-export async function addOrderItem(
-  prevState: OrderFormState,
-  data: {
-    order_id: string;
-    items: Cart[];
-  }
-) {
-  const supabase = await createClient();
-
-  const payload = data.items.map(({ total, menu, ...item }) => item);
-
-  const { error } = await supabase.from("orders_menus").insert(payload);
-  if (error) {
-    return {
-      status: "error",
-      errors: {
-        ...prevState,
-        _form: [],
-      },
-    };
-  }
-
-  redirect(`/order/${data.order_id}`);
-}
-
 export async function updateStatusOrderItem(
   prevState: FormState,
   formData: FormData
@@ -172,6 +146,22 @@ export async function generatePayment(
   prevState: FormState,
   formData: FormData
 ) {
+  const cookiesStore = await cookies();
+  const profile = JSON.parse(cookiesStore.get('user_profile')?.value ?? '{}');
+
+  if (profile.role === 'kitchen') {
+    return {
+      status: "error",
+      errors: {
+        ...prevState,
+        _form: ['Kitchen staff cannot generate payment'],
+      },
+      data: {
+        payment_token: "",
+      },
+    };
+  }
+
   const supabase = await createClient();
   const orderId = formData.get("id");
   const grossAmount = formData.get("gross_amount");
@@ -212,10 +202,10 @@ export async function generatePayment(
     .update({ payment_token: result.token })
     .eq("order_id", orderId);
 
-    return{
-      status: 'success',
-      data: {
-        payment_token: `${result.token}`,
-      },
-    };
+  return{
+    status: 'success',
+    data: {
+      payment_token: `${result.token}`,
+    },
+  };
 }

@@ -2,12 +2,10 @@ import { environment } from '@/configs/environment';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-//switches between SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY
 type CreateClientOptions = {
   isAdmin?: boolean;
 };
 
-//getFromServerSide
 export async function createClient({
   isAdmin = false,
 }: CreateClientOptions = {}) {
