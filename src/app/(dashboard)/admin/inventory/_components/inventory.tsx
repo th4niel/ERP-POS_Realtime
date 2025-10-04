@@ -11,7 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, Pencil, Trash2 } from "lucide-react";
 import { useMemo, useState, useCallback } from "react";
 import { toast } from "sonner";
-import { InventoryItem } from "@/validations/inventory-validation";
+import { InventoryItem, Supplier } from "@/validations/inventory-validation";
 import { cn, convertUSD } from "@/lib/utils";
 import { HEADER_TABLE_INVENTORY } from "@/constants/inventory-constant";
 import DialogCreateInventory from "./dialog-create-inventory";
@@ -46,17 +46,21 @@ export default function InventoryManagement() {
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('suppliers')
-                .select('id, name')
+                .select('id, name, contact, email, address')
                 .order('name');
             
             if (error) {
                 toast.error('Failed to load suppliers');
-                return [];
+                return [] as Supplier[];
             }
+            
             return (data || []).map(s => ({
                 id: s.id.toString(),
-                name: s.name
-            }));
+                name: s.name,
+                contact: s.contact,
+                email: s.email,
+                address: s.address,
+            })) as Supplier[];
         },
     });
 
@@ -65,7 +69,7 @@ export default function InventoryManagement() {
         queryFn: async () => {
             const query = supabase
                 .from('inventory_items')
-                .select('*, suppliers(name)', { count: 'exact' })
+                .select('*, suppliers(id, name)', { count: 'exact' })
                 .range((currentPage - 1) * currentLimit, currentPage * currentLimit - 1)
                 .order('created_at');
 
@@ -80,7 +84,10 @@ export default function InventoryManagement() {
                     description: result.error.message,
                 });
 
-            return result;
+            return {
+                ...result,
+                data: result.data as InventoryItem[] | null
+            };
         },
         enabled: activeTab === 'items'
     });

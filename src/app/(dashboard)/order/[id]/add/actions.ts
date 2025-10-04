@@ -2,17 +2,28 @@
 
 import { createClient } from '@/lib/supabase/server';
 
+type InventoryItemData = {
+    item_id: number;
+    quantity_needed: number;
+    inventory_items: {
+        name: string;
+        current_stock: number;
+    } | null;
+};
+
+type OrderItemInput = {
+    order_id: string;
+    menu_id: string;
+    quantity: number;
+    notes: string;
+    status: string;
+};
+
 export async function processOrderWithInventory(
     prevState: any,
     data: {
         order_id: string;
-        items: Array<{
-            order_id: string;
-            menu_id: string;
-            quantity: number;
-            notes: string;
-            status: string;
-        }>;
+        items: OrderItemInput[];
     }
 ) {
     const supabase = await createClient();
@@ -35,18 +46,26 @@ export async function processOrderWithInventory(
             const { data: ingredients } = await supabase
                 .from('menu_ingredients')
                 .select('item_id, quantity_needed, inventory_items(name, current_stock)')
-                .eq('menu_id', item.menu_id);
+                .eq('menu_id', item.menu_id)
+                .returns<InventoryItemData[]>();
 
             if (ingredients && ingredients.length > 0) {
                 for (const ingredient of ingredients) {
+                    if (!ingredient.inventory_items) {
+                        return {
+                            status: 'error',
+                            errors: { _form: ['Inventory item not found'] },
+                        };
+                    }
+
                     const requiredQty = ingredient.quantity_needed * item.quantity;
-                    const currentStock = ingredient.inventory_items?.current_stock || 0;
+                    const currentStock = ingredient.inventory_items.current_stock;
 
                     if (currentStock < requiredQty) {
                         return {
                             status: 'error',
                             errors: {
-                                _form: [`Insufficient stock for ${ingredient.inventory_items?.name}. Required: ${requiredQty}, Available: ${currentStock}`]
+                                _form: [`Insufficient stock for ${ingredient.inventory_items.name}. Required: ${requiredQty}, Available: ${currentStock}`]
                             }
                         };
                     }
@@ -77,7 +96,8 @@ export async function processOrderWithInventory(
             const { data: ingredients } = await supabase
                 .from('menu_ingredients')
                 .select('item_id, quantity_needed')
-                .eq('menu_id', item.menu_id);
+                .eq('menu_id', item.menu_id)
+                .returns<{ item_id: number; quantity_needed: number }[]>();
 
             if (ingredients && ingredients.length > 0) {
                 for (const ingredient of ingredients) {

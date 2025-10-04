@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { INVENTORY_CATEGORY_LIST, UNIT_LIST } from "@/constants/inventory-constant";
+import { Supplier } from "@/validations/inventory-validation";
 import { Loader2 } from "lucide-react";
 import { FormEvent } from "react";
 import { FieldValues, Path, UseFormReturn } from "react-hook-form";
@@ -19,7 +20,7 @@ export default function FormInventory<T extends FieldValues>({
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
     isLoading: boolean;
     type: 'Create' | 'Update';
-    suppliers?: { id: string; name: string }[];
+    suppliers?: Supplier[];
 }) {
     return (
         <DialogContent className="sm:max-w-[425px] max-h-[90vh]">

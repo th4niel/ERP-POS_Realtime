@@ -47,17 +47,48 @@ export const menuIngredientSchema = z.object({
 });
 
 export type InventoryItemForm = z.infer<typeof inventoryItemFormSchema>;
-export type InventoryItem = z.infer<typeof inventoryItemSchema> & { 
+
+export type InventoryItem = {
   id: string;
-  suppliers?: { name: string } | null;
+  name: string;
+  category: string;
+  unit: string;
+  current_stock: number;
+  minimum_stock: number;
+  unit_price: number;
+  supplier_id: number | null;
+  suppliers?: { 
+    id: number;
+    name: string; 
+  } | null;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type SupplierForm = z.infer<typeof supplierFormSchema>;
-export type Supplier = z.infer<typeof supplierSchema> & { id: string };
+
+export type Supplier = {
+  id: string;
+  name: string;
+  contact: string | null;
+  email: string | null;
+  address: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
 
 export type MenuIngredientForm = z.infer<typeof menuIngredientFormSchema>;
-export type MenuIngredient = z.infer<typeof menuIngredientSchema> & { 
+
+export type MenuIngredient = {
   id: string;
+  menu_id: number;
+  item_id: number;
+  quantity_needed: number;
   inventory_items?: InventoryItem;
-  menus?: { name: string };
+  menus?: { 
+    id: number;
+    name: string; 
+  };
+  created_at?: string;
+  updated_at?: string;
 };

@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { startTransition, useActionState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { InventoryItemForm, inventoryItemFormSchema } from "@/validations/inventory-validation";
+import { InventoryItemForm, inventoryItemFormSchema, Supplier } from "@/validations/inventory-validation";
 import { INITIAL_INVENTORY_ITEM, INITIAL_STATE_INVENTORY } from "@/constants/inventory-constant";
 import { createInventoryItem } from "../actions";
 import FormInventory from "./form-inventory";
@@ -12,7 +12,7 @@ export default function DialogCreateInventory({
     suppliers 
 }: { 
     refetch: () => void;
-    suppliers?: Array<{ id: string; name: string }>;
+    suppliers?: Supplier[];
 }) {
     const form = useForm<InventoryItemForm>({
         resolver: zodResolver(inventoryItemFormSchema),
