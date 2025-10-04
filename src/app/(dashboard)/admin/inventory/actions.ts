@@ -16,7 +16,7 @@ export async function createInventoryItem(
     current_stock: parseFloat(formData.get('current_stock') as string),
     minimum_stock: parseFloat(formData.get('minimum_stock') as string),
     unit_price: parseFloat(formData.get('unit_price') as string),
-    supplier_id: formData.get('supplier_id') 
+    supplier_id: formData.get('supplier_id') && formData.get('supplier_id') !== ''
       ? parseInt(formData.get('supplier_id') as string) 
       : null,
   });
@@ -65,7 +65,7 @@ export async function updateInventoryItem(
     current_stock: parseFloat(formData.get('current_stock') as string),
     minimum_stock: parseFloat(formData.get('minimum_stock') as string),
     unit_price: parseFloat(formData.get('unit_price') as string),
-    supplier_id: formData.get('supplier_id')
+    supplier_id: formData.get('supplier_id') && formData.get('supplier_id') !== ''
       ? parseInt(formData.get('supplier_id') as string)
       : null,
   });
@@ -141,7 +141,7 @@ export async function adjustStock(
   const quantity = parseFloat(formData.get('quantity') as string);
   const notes = formData.get('notes') as string;
 
-  if (!itemId || !transactionType || !quantity) {
+  if (!itemId || !transactionType || !quantity || isNaN(quantity) || quantity <= 0) {
     return {
       status: 'error',
       errors: { _form: ['Invalid input data'] },
@@ -151,16 +151,7 @@ export async function adjustStock(
   const supabase = await createClient();
 
   try {
-    const actualQuantity = transactionType === 'out' ? -quantity : quantity;
-
-    if (transactionType === 'in') {
-      const { error: addError } = await supabase.rpc('add_inventory_stock', {
-        p_item_id: itemId,
-        p_quantity: quantity,
-      });
-
-      if (addError) throw addError;
-    } else {
+    if (transactionType === 'out') {
       const { data: item } = await supabase
         .from('inventory_items')
         .select('current_stock')
@@ -170,7 +161,7 @@ export async function adjustStock(
       if (!item || item.current_stock < quantity) {
         return {
           status: 'error',
-          errors: { _form: ['Insufficient stock'] },
+          errors: { _form: [`Insufficient stock. Available: ${item?.current_stock || 0}`] },
         };
       }
 
@@ -179,20 +170,49 @@ export async function adjustStock(
         p_quantity: quantity,
       });
 
-      if (deductError) throw deductError;
-    }
+      if (deductError) {
+        throw deductError;
+      }
 
-    const { error: transactionError } = await supabase
-      .from('inventory_transactions')
-      .insert({
-        item_id: itemId,
-        transaction_type: transactionType,
-        quantity: actualQuantity,
-        reference_type: 'manual',
-        notes: notes || `Manual ${transactionType === 'in' ? 'stock in' : 'stock out'}`,
+      const { error: transactionError } = await supabase
+        .from('inventory_transactions')
+        .insert({
+          item_id: itemId,
+          transaction_type: transactionType,
+          quantity: -quantity,
+          reference_type: 'manual',
+          reference_id: null,
+          notes: notes || 'Manual stock out',
+        });
+
+      if (transactionError) {
+        throw transactionError;
+      }
+    } else {
+      const { error: addError } = await supabase.rpc('add_inventory_stock', {
+        p_item_id: itemId,
+        p_quantity: quantity,
       });
 
-    if (transactionError) throw transactionError;
+      if (addError) {
+        throw addError;
+      }
+
+      const { error: transactionError } = await supabase
+        .from('inventory_transactions')
+        .insert({
+          item_id: itemId,
+          transaction_type: transactionType,
+          quantity: quantity,
+          reference_type: 'manual',
+          reference_id: null,
+          notes: notes || 'Manual stock in',
+        });
+
+      if (transactionError) {
+        throw transactionError;
+      }
+    }
 
     return { status: 'success' };
   } catch (error: any) {

@@ -9,7 +9,7 @@ import useDataTable from "@/hooks/use-data-table";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, Pencil, Trash2 } from "lucide-react";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { InventoryItem, Supplier } from "@/validations/inventory-validation";
 import { cn, convertUSD } from "@/lib/utils";
@@ -41,7 +41,7 @@ export default function InventoryManagement() {
     const [adjustStockOpen, setAdjustStockOpen] = useState(false);
     const { currentPage, currentLimit, currentSearch, handleChangePage, handleChangeLimit, handleChangeSearch } = useDataTable();
 
-    const { data: suppliers } = useQuery({
+    const { data: suppliers, refetch: refetchSuppliers } = useQuery({
         queryKey: ['suppliers'],
         queryFn: async () => {
             const { data, error } = await supabase
@@ -71,7 +71,7 @@ export default function InventoryManagement() {
                 .from('inventory_items')
                 .select('*, suppliers(id, name)', { count: 'exact' })
                 .range((currentPage - 1) * currentLimit, currentPage * currentLimit - 1)
-                .order('created_at');
+                .order('created_at', { ascending: false });
 
             if (currentSearch) {
                 query.or(`name.ilike.%${currentSearch}%,category.ilike.%${currentSearch}%`);
@@ -92,7 +92,7 @@ export default function InventoryManagement() {
         enabled: activeTab === 'items'
     });
 
-    const { data: transactions, isLoading: isLoadingTransactions } = useQuery({
+    const { data: transactions, isLoading: isLoadingTransactions, refetch: refetchTransactions } = useQuery({
         queryKey: ['transactions', currentPage, currentLimit],
         queryFn: async () => {
             const result = await supabase
@@ -110,6 +110,37 @@ export default function InventoryManagement() {
         },
         enabled: activeTab === 'transactions'
     });
+
+    useEffect(() => {
+        const channel = supabase
+            .channel('inventory-changes')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'inventory_items'
+            }, () => {
+                refetch();
+            })
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'inventory_transactions'
+            }, () => {
+                refetchTransactions();
+            })
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'suppliers'
+            }, () => {
+                refetchSuppliers();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [supabase, refetch, refetchTransactions, refetchSuppliers]);
 
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

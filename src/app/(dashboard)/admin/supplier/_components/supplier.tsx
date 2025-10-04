@@ -9,7 +9,7 @@ import useDataTable from "@/hooks/use-data-table";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { Supplier } from "@/validations/inventory-validation";
 import { HEADER_TABLE_SUPPLIER } from "@/constants/inventory-constant";
@@ -44,6 +44,23 @@ export default function SupplierManagement() {
             return result;
         },
     });
+
+    useEffect(() => {
+        const channel = supabase
+            .channel('supplier-changes')
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'suppliers'
+            }, () => {
+                refetch();
+            })
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+        };
+    }, [supabase, refetch]);
 
     const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

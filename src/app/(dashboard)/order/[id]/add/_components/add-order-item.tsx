@@ -31,6 +31,7 @@ export default function AddOrderItem({ id }: { id: string }) {
       });
     }
   }, [profile.role, id, router]);
+
   const {
     currentSearch,
     currentFilter,
@@ -63,7 +64,7 @@ export default function AddOrderItem({ id }: { id: string }) {
     },
   });
 
-  const { data: order } = useQuery({
+  const { data: order, refetch: refetchOrder } = useQuery({
     queryKey: ["order", id],
     queryFn: async () => {
       const result = await supabase
@@ -81,6 +82,24 @@ export default function AddOrderItem({ id }: { id: string }) {
     },
     enabled: !!id,
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('order-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'orders',
+        filter: `order_id=eq.${id}`
+      }, () => {
+        refetchOrder();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, id, refetchOrder]);
 
   const [carts, setCarts] = useState<Cart[]>([]);
   const handleAddtoCart = (menu: Menu, action: "increment" | "decrement") => {
@@ -149,6 +168,7 @@ export default function AddOrderItem({ id }: { id: string }) {
 
     if (addOrderItemState?.status === 'success') {
       toast.success('Order Added Successfully');
+      setCarts([]);
       router.push(`/order/${id}`);
     }
   }, [addOrderItemState, id, router]);

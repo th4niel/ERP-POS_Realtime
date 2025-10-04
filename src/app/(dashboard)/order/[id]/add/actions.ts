@@ -45,8 +45,12 @@ export async function processOrderWithInventory(
         for (const item of data.items) {
             const { data: ingredients } = await supabase
                 .from('menu_ingredients')
-                .select('item_id, quantity_needed, inventory_items(name, current_stock)')
-                .eq('menu_id', item.menu_id)
+                .select(`
+                    item_id, 
+                    quantity_needed, 
+                    inventory_items(name, current_stock)
+                `)
+                .eq('menu_id', parseInt(item.menu_id))
                 .returns<InventoryItemData[]>();
 
             if (ingredients && ingredients.length > 0) {
@@ -96,7 +100,7 @@ export async function processOrderWithInventory(
             const { data: ingredients } = await supabase
                 .from('menu_ingredients')
                 .select('item_id, quantity_needed')
-                .eq('menu_id', item.menu_id)
+                .eq('menu_id', parseInt(item.menu_id))
                 .returns<{ item_id: number; quantity_needed: number }[]>();
 
             if (ingredients && ingredients.length > 0) {
@@ -113,16 +117,26 @@ export async function processOrderWithInventory(
 
                     if (deductError) {
                         console.error('Inventory deduction failed:', deductError);
+                        return {
+                            status: 'error',
+                            errors: { _form: ['Failed to deduct inventory stock'] },
+                        };
                     }
 
-                    await supabase.from('inventory_transactions').insert({
-                        item_id: ingredient.item_id,
-                        transaction_type: 'out',
-                        quantity: -deductQty,
-                        reference_type: 'order',
-                        reference_id: order.id,
-                        notes: `Used for Order ${data.order_id}`,
-                    });
+                    const { error: transactionError } = await supabase
+                        .from('inventory_transactions')
+                        .insert({
+                            item_id: ingredient.item_id,
+                            transaction_type: 'out',
+                            quantity: -deductQty,
+                            reference_type: 'order',
+                            reference_id: order.id,
+                            notes: `Used for Order ${data.order_id}`,
+                        });
+
+                    if (transactionError) {
+                        console.error('Transaction logging failed:', transactionError);
+                    }
                 }
             }
         }
