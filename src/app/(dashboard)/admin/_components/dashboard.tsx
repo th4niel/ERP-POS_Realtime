@@ -67,9 +67,9 @@ export default function Dashboard() {
 
             const growthRate =  (((totalRevenueThisMonth - totalRevenueLastMonth) / totalRevenueLastMonth) * 100).toFixed(2);
 
-            const daysInData = new Set((dataThisMonth ?? []).map((item) => {
-                new Date(item.created_at).toISOString().slice(0, 10);
-            }),
+            const daysInData = new Set((dataThisMonth ?? []).map((item) => 
+                new Date(item.created_at).toISOString().slice(0, 10),
+                ),
             ).size;
 
             const averageRevenueThisMonth = daysInData > 0 ? totalRevenueThisMonth / daysInData : 0;
