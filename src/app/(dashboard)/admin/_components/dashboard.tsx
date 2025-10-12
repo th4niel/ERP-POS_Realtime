@@ -1,8 +1,9 @@
 'use client';
 
 import LineCharts from "@/components/common/line-chart";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
+import { convertUSD } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 
 export default function Dashboard() {
@@ -10,11 +11,8 @@ export default function Dashboard() {
     const lastWeek = new Date();
     lastWeek.setDate(lastWeek.getDate() - 6);
     lastWeek.setHours(0,0,0,0);
-    const {
-        data: orders,
-        isLoading,
-        refetch: refetchOrders,
-    } = useQuery({
+
+    const { data: orders } = useQuery({
         queryKey: ["orders-per-day"],
         queryFn: async () => {
         const {data} = await supabase
@@ -32,10 +30,110 @@ export default function Dashboard() {
             return Object.entries(counts).map(([name, total]) => ({name, total}));
     },
   });
+
+    const thisMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+
+    const lastMonth = new Date(new Date().getFullYear(), 0, 1).toISOString();
+
+    const { data: revenue } = useQuery({
+        queryKey: ['revenue-this-month'],
+        queryFn: async () => {
+            const {data: dataThisMonth} = await supabase
+                .from('orders_menus')
+                .select('quantity, menus (price), created_at')
+                .gte('created_at', thisMonth);
+
+            const {data: dataLastMonth} = await supabase
+                .from('orders_menus')
+                .select('quantity, menus (price), created_at')
+                .gte('created_at', lastMonth)
+                .lt('created_at', thisMonth);
+
+            const totalRevenueThisMonth = (dataThisMonth ?? []).reduce(
+                (sum, item) => {
+                    const price = (item.menus as unknown as {price: number}).price;
+                    return sum + price * item.quantity;
+                },
+                0,
+            );
+
+            const totalRevenueLastMonth = (dataLastMonth ?? []).reduce(
+                (sum, item) => {
+                    const price = (item.menus as unknown as {price: number}).price;
+                    return sum + price * item.quantity;
+                },
+                0,
+            );
+
+            const growthRate =  (((totalRevenueThisMonth - totalRevenueLastMonth) / totalRevenueLastMonth) * 100).toFixed(2);
+
+            const daysInData = new Set((dataThisMonth ?? []).map((item) => {
+                new Date(item.created_at).toISOString().slice(0, 10);
+            }),
+            ).size;
+
+            const averageRevenueThisMonth = daysInData > 0 ? totalRevenueThisMonth / daysInData : 0;
+
+            return {
+                totalRevenueThisMonth,
+                totalRevenueLastMonth,
+                averageRevenueThisMonth,
+                growthRate,
+            };
+        },
+    });
+
+
   return(
     <div className="w-full">
         <div className="flex flex-col lg:flex-row mb-4 gap-2 justify-between w-full">
                 <h1 className="text-2xl font-bold">Dashboard</h1>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <Card>
+                    <CardHeader>
+                        <CardDescription>Total Revenue</CardDescription>
+                        <CardTitle className="text-3xl font-bold">
+                            {convertUSD(revenue?.totalRevenueThisMonth ?? 0)}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardFooter>
+                        <div className="text-muted-foreground text-sm">*Revenue this month</div>
+                    </CardFooter>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardDescription>Average Revenue</CardDescription>
+                        <CardTitle className="text-3xl font-bold">
+                            {convertUSD(revenue?.averageRevenueThisMonth ?? 0)}
+                        </CardTitle>
+                    </CardHeader>
+                    <CardFooter>
+                        <div className="text-muted-foreground text-sm">*Average per day</div>
+                    </CardFooter>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardDescription>Total Order</CardDescription>
+                        <CardTitle className="text-3xl font-bold">
+                            100
+                        </CardTitle>
+                    </CardHeader>
+                    <CardFooter>
+                        <div className="text-muted-foreground text-sm">*Order settled this month</div>
+                    </CardFooter>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardDescription>Growth Rate</CardDescription>
+                        <CardTitle className="text-3xl font-bold">
+                            {revenue?.growthRate ?? 0}%
+                        </CardTitle>
+                    </CardHeader>
+                    <CardFooter>
+                        <div className="text-muted-foreground text-sm">*Compared to last month</div>
+                    </CardFooter>
+                </Card>
             </div>
             <Card>
                 <CardHeader>
