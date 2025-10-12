@@ -83,6 +83,19 @@ export default function Dashboard() {
         },
     });
 
+    const {data: totalOrder} = useQuery({
+        queryKey: ['total-order'],
+        queryFn: async() => {
+            const {count} = await supabase
+                .from('orders')
+                .select('id', {count: 'exact'})
+                .eq('status', 'settled')
+                .gte('created_at', thisMonth);
+
+                return count;
+        },
+    });
+
 
   return(
     <div className="w-full">
@@ -116,7 +129,7 @@ export default function Dashboard() {
                     <CardHeader>
                         <CardDescription>Total Order</CardDescription>
                         <CardTitle className="text-3xl font-bold">
-                            100
+                            {totalOrder ?? 0}
                         </CardTitle>
                     </CardHeader>
                     <CardFooter>
