@@ -1,10 +1,12 @@
 'use client';
 
 import LineCharts from "@/components/common/line-chart";
+import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/client";
 import { convertUSD } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 
 export default function Dashboard() {
     const supabase = createClient();
@@ -18,6 +20,7 @@ export default function Dashboard() {
         const {data} = await supabase
             .from("orders")
             .select('created_at')
+            .eq('status', 'settled')
             .gte('created_at', lastWeek.toISOString()).order('created_at')
 
             const counts: Record<string, number> = {};
@@ -96,6 +99,20 @@ export default function Dashboard() {
         },
     });
 
+    const {data: lastOrder} = useQuery({
+        queryKey: ['last-order'],
+        queryFn: async() => {
+            const {data} = await supabase
+                .from('orders')
+                .select('id, order_id, customer_name, status, tables(name, id)')
+                .eq('status', 'process')
+                .limit(5)
+                .order('created_at', {ascending: false});
+
+                return data;
+        },
+    });
+
 
   return(
     <div className="w-full">
@@ -148,7 +165,8 @@ export default function Dashboard() {
                     </CardFooter>
                 </Card>
             </div>
-            <Card>
+            <div className="flex flex-col lg:flex-row gap-4">
+                <Card className="w-full lg:w-2/3">
                 <CardHeader>
                     <CardTitle>Order Create Per Week</CardTitle>
                     <CardDescription>
@@ -159,7 +177,37 @@ export default function Dashboard() {
                 <div className="w-full h-64 p-6">
                     <LineCharts data={orders}/>
                 </div>
-            </Card>
+                </Card>
+                <Card className="w-full lg:w-1/3">
+                <CardHeader>
+                    <CardTitle>Active Order</CardTitle>
+                    <CardDescription>
+                        Showing last 5 active orders
+                    </CardDescription>
+                </CardHeader>
+                <div className="px-6">
+                    {lastOrder ? (
+                        lastOrder.map((order) => (
+                            <div key={order.id} className="flex items-center gap-4 justify-between mb-4">
+                                <div>
+                                    <h3 className="font-semibold">{order.customer_name}</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Table:{' '}
+                                        {(order.tables as unknown as {name: string}).name}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Order ID: {order.id}
+                                    </p>
+                                </div>
+                                <Link href={`/order/${order.order_id}`}>
+                                <Button className="mt-2" size="sm">Detail</Button>
+                                </Link>
+                            </div>
+                        ))
+                    ) : (<p>No active orders</p>)}
+                </div>
+                </Card>
     </div>
+            </div>
   );
 }
