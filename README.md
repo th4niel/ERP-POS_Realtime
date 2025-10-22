@@ -54,7 +54,7 @@ Live Demo: https://pos-erp-realtime.vercel.app/login
     Keyboard shortcuts
 ```
 
-##  Future Enhancements ✨✨✨
+##  Future Update ✨✨✨
 ```bash
  Inventory management system (Work In Progress)
 ```
