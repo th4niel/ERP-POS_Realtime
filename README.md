@@ -1,7 +1,65 @@
-### ERP-POS_Realtime (Inventory Management Work in Progress)
-DEMO: https://pos-erp-realtime.vercel.app/login
+### ERP-POS_Realtime
+Live Demo: https://pos-erp-realtime.vercel.app/login
 
-## Quick Start
+## Project Features 🌟🌟🌟
+```bash
+  🔐 Authentication
+    Multi-role system
+    Secure session management with Supabase
+    Profile management with avatar upload
+
+  📊 Dashboard
+    Real-time revenue tracking & analytics
+    Order statistics with visual charts
+    Active orders monitoring
+    Growth rate calculations
+
+  🍽️ Menu Management
+    CRUD operations for menu items
+    Category classification
+    Image upload with preview
+    Price & discount management
+    Availability status control
+    Search & filter functionality
+
+  🪑 Table Management
+    Table configuration
+    Real-time status updates
+    Automatic status changes based on orders
+
+  👥 User Management
+    Create users with role assignment
+    Avatar & profile customization
+    User deletion with cleanup
+
+  🛒 Order System
+    Order Creation: Reserved or direct process orders
+    Order Flow: Pending → Process → Ready → Served
+    Real-time Updates: Live status synchronization
+    Item Management: Add items, quantities, and notes
+    Kitchen Display: Status updates for kitchen staff
+
+  💳 Payment Gateaway
+    Secure payment processing
+    Multiple payment methods
+    Auto calculations
+    Receipt printing
+    Payment status tracking
+
+  🎨 UI/UX
+    Responsive design
+    Dark mode support
+    Real-time toast notifications
+    Loading states & error handling
+    Keyboard shortcuts
+```
+
+##  Future Enhancements ✨✨✨
+```bash
+ Inventory management system (Work In Progress)
+```
+
+## Quick Start ⚡⚡⚡
 
 1. **Dev Dependencies Installation**
 ```bash
