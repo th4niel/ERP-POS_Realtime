@@ -54,9 +54,11 @@ Live Demo: https://pos-erp-realtime.vercel.app/login
     Keyboard shortcuts
 ```
 
-##  Future Update ✨✨✨
+##  Future Update  ✨✨✨
 ```bash
- Inventory management system (Work In Progress)
+  TakeAway Order (Work In Progress)
+  Discount Menus
+ Inventory management system
 ```
 
 ## Quick Start ⚡⚡⚡
