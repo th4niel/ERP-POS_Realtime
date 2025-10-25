@@ -23,8 +23,10 @@ import { Loader2 } from "lucide-react";
 
 export default function DialogCreateOrderTakeaway({
   closeDialog,
+  refetchOrders,
 }: {
   closeDialog: () => void;
+  refetchOrders: () => void;
 }) {
   const form = useForm<OrderTakeawayForm>({
     resolver: zodResolver(orderTakeawayFormSchema),
@@ -55,6 +57,7 @@ export default function DialogCreateOrderTakeaway({
     if (createOrderState?.status === "success") {
       toast.success("Create Order Success");
       form.reset();
+      refetchOrders();
       closeDialog();
     }
   }, [createOrderState, form]);
