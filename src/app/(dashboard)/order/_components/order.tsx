@@ -265,14 +265,14 @@ export default function OrderManagement() {
                 <Utensils className="size-4"/>
                 Dine In
               </DialogTrigger>
-              <DialogCreateOrderDineIn tables={tables} closeDialog={() => setOpenCreateOrder(false)}/>
+              <DialogCreateOrderDineIn tables={tables} closeDialog={() => setOpenCreateOrder(false)} refetchOrders={refetchOrders}/>
             </Dialog>
             <Dialog>
               <DialogTrigger className="flex items-center gap-2 text-sm p-2 w-full rounded-md hover:bg-muted">
                 <Package className="size-4"/>
                 Takeaway
               </DialogTrigger>
-              <DialogCreateOrderTakeaway closeDialog={() => setOpenCreateOrder(false)}/>
+              <DialogCreateOrderTakeaway closeDialog={() => setOpenCreateOrder(false)} refetchOrders={refetchOrders}/>
             </Dialog>
               </DropdownMenuContent>
             </DropdownMenu>
