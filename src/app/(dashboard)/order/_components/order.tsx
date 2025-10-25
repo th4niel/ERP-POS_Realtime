@@ -19,7 +19,6 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Table } from "@/validations/table-validation";
 import { HEADER_TABLE_ORDER } from "@/constants/order-constant";
 import { updateReservation } from "../actions";
 import { INITIAL_STATE_ACTION } from "@/constants/general-constant";
@@ -192,7 +191,7 @@ export default function OrderManagement() {
         currentLimit * (currentPage - 1) + index + 1,
         order.order_id,
         order.customer_name,
-        (order.tables as unknown as { name: string }).name || 'Takeaway',
+        (order.tables as unknown as { name: string })?.name || 'Takeaway',
 
         <div
           key={`status-${order.status}`}
