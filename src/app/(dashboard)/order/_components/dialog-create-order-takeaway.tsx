@@ -2,12 +2,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { startTransition, useActionState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { createOrder } from "../actions";
-import { OrderForm, orderFormSchema } from "@/validations/order-validation";
+import { createOrderTakeaway } from "../actions";
+import { OrderTakeawayForm, orderTakeawayFormSchema } from "@/validations/order-validation";
 import {
-  INITIAL_ORDER,
-  INITIAL_STATE_ORDER,
-  STATUS_CREATE_ORDER,
+  INITIAL_ORDER_TAKEAWAY,
+  INITIAL_STATE_ORDER_TAKEAWAY,
 } from "@/constants/order-constant";
 import {
   DialogClose,
@@ -27,13 +26,13 @@ export default function DialogCreateOrderTakeaway({
 }: {
   closeDialog: () => void;
 }) {
-  const form = useForm<OrderForm>({
-    resolver: zodResolver(orderFormSchema),
-    defaultValues: INITIAL_ORDER,
+  const form = useForm<OrderTakeawayForm>({
+    resolver: zodResolver(orderTakeawayFormSchema),
+    defaultValues: INITIAL_ORDER_TAKEAWAY,
   });
 
   const [createOrderState, createOrderAction, isPendingCreateOrder] =
-    useActionState(createOrder, INITIAL_STATE_ORDER);
+    useActionState(createOrderTakeaway, INITIAL_STATE_ORDER_TAKEAWAY);
 
   const onSubmit = form.handleSubmit((data) => {
     const formData = new FormData();
