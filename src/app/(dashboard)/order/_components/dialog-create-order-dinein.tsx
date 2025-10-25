@@ -27,9 +27,11 @@ import { Loader2 } from "lucide-react";
 export default function DialogCreateOrderDineIn({
   tables,
   closeDialog,
+  refetchOrders
 }: {
   tables: Table[] | undefined | null;
   closeDialog: () => void;
+  refetchOrders: () => void;
 }) {
   const form = useForm<OrderForm>({
     resolver: zodResolver(orderFormSchema),
@@ -61,6 +63,7 @@ export default function DialogCreateOrderDineIn({
       toast.success("Create Order Success");
       form.reset();
       closeDialog();
+      refetchOrders();
     }
   }, [createOrderState, form]);
 
