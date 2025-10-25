@@ -33,11 +33,12 @@ Live Demo: https://pos-erp-realtime.vercel.app/login
     User deletion with cleanup
 
   🛒 Order System
+    Order Type: Customers can choose Dine-in or Takeaway
     Order Creation: Reserved or direct process orders
     Order Flow: Pending → Process → Ready → Served
     Real-time Updates: Live status synchronization
     Item Management: Add items, quantities, and notes
-    Kitchen Display: Status updates for kitchen staff
+    Kitchen Display: Real-time order status updates for kitchen staff
 
   💳 Payment Gateaway
     Secure payment processing
@@ -56,7 +57,7 @@ Live Demo: https://pos-erp-realtime.vercel.app/login
 
 ##  Future Update  ✨✨✨
 ```bash
-  TakeAway Order (Work In Progress)
+  TakeAway Order (✅)
   Discount Menus
  Inventory management system
 ```
