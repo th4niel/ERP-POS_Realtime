@@ -1,2 +1,2 @@
 alter table orders_menus
-add column
+add column nominal integer;
