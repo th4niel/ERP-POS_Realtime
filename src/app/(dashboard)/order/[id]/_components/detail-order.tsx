@@ -149,7 +149,7 @@ export default function DetailOrder({ id }: { id: string }) {
             </span>
           </div>
         </div>,
-        <div key={``}>{convertUSD(item.menus.price * item.quantity)}</div>,
+        <div key={``}>{convertUSD(item.nominal)}</div>,
         <div
           key={``}
           className={cn("px-2 py-1 rounded-full text-white w-fit capitalize", {
