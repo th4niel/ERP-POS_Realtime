@@ -39,31 +39,29 @@ export default function Dashboard() {
     const lastMonth = new Date(new Date().getFullYear(), 0, 1).toISOString();
 
     const { data: revenue } = useQuery({
-        queryKey: ['revenue-this-month'],
+        queryKey: ['revenue'],
         queryFn: async () => {
             const {data: dataThisMonth} = await supabase
                 .from('orders_menus')
-                .select('quantity, menus (price), created_at')
+                .select('nominal, created_at')
                 .gte('created_at', thisMonth);
 
             const {data: dataLastMonth} = await supabase
                 .from('orders_menus')
-                .select('quantity, menus (price), created_at')
+                .select('nominal, created_at')
                 .gte('created_at', lastMonth)
                 .lt('created_at', thisMonth);
 
             const totalRevenueThisMonth = (dataThisMonth ?? []).reduce(
                 (sum, item) => {
-                    const price = (item.menus as unknown as {price: number}).price;
-                    return sum + price * item.quantity;
+                    return sum + item.nominal;
                 },
                 0,
             );
 
             const totalRevenueLastMonth = (dataLastMonth ?? []).reduce(
                 (sum, item) => {
-                    const price = (item.menus as unknown as {price: number}).price;
-                    return sum + price * item.quantity;
+                    return sum + item.nominal;
                 },
                 0,
             );
