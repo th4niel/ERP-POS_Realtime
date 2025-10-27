@@ -1,20 +1,20 @@
 ### ERP-POS_Realtime
 Live Demo: https://pos-erp-realtime.vercel.app/login
 
-## Project Features 🌟🌟🌟
+## Project Features
 ```bash
-  🔐 Authentication
+  Authentication
     Multi-role system
     Secure session management with Supabase
     Profile management with avatar upload
 
-  📊 Dashboard
+  Dashboard
     Real-time revenue tracking & analytics
     Order statistics with visual charts
     Active orders monitoring
     Growth rate calculations
 
-  🍽️ Menu Management
+  Menu Management
     CRUD operations for menu items
     Category classification
     Image upload with preview
@@ -22,17 +22,17 @@ Live Demo: https://pos-erp-realtime.vercel.app/login
     Availability status control
     Search & filter functionality
 
-  🪑 Table Management
+  Table Management
     Table configuration
     Real-time status updates
     Automatic status changes based on orders
 
-  👥 User Management
+   User Management
     Create users with role assignment
     Avatar & profile customization
     User deletion with cleanup
 
-  🛒 Order System
+  Order System
     Order Type: Customers can choose Dine-in or Takeaway
     Order Creation: Reserved or direct process orders
     Order Flow: Pending → Process → Ready → Served
@@ -40,14 +40,14 @@ Live Demo: https://pos-erp-realtime.vercel.app/login
     Item Management: Add items, quantities, and notes
     Kitchen Display: Real-time order status updates for kitchen staff
 
-  💳 Payment Gateaway
+  Payment Gateaway
     Secure payment processing
     Multiple payment methods
     Auto calculations
     Receipt printing
     Payment status tracking
 
-  🎨 UI/UX
+  UI/UX
     Responsive design
     Dark mode support
     Real-time toast notifications
@@ -55,14 +55,14 @@ Live Demo: https://pos-erp-realtime.vercel.app/login
     Keyboard shortcuts
 ```
 
-##  Future Update  ✨✨✨
+##  Future Update
 ```bash
   TakeAway Order (✅)
-  Discount Menus
+  Discount Menus (Work in Progress)
  Inventory management system
 ```
 
-## Quick Start ⚡⚡⚡
+## Quick Start
 
 1. **Dev Dependencies Installation**
 ```bash
