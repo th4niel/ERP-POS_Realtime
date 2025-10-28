@@ -78,11 +78,11 @@ export default function CartSection({
                     <div>
                       <p className="text-sm">{item.menu.name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {convertUSD(item.total / item.quantity)}
+                        {convertUSD(item.nominal / item.quantity)}
                       </p>
                     </div>
                   </div>
-                  <p className="text-xm">{convertUSD(item.total)}</p>
+                  <p className="text-xm">{convertUSD(item.nominal)}</p>
                 </div>
                 <div className="flex items-center gap-4 w-full">
                   <Input
