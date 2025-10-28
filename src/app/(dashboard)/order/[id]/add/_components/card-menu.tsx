@@ -33,7 +33,19 @@ export default function CardMenu({
         </div>
       </CardContent>
       <CardFooter className="p-4 flex justify-between items-center">
-        <div className="text-xl font-bold">{convertUSD(menu.price)}</div>
+        <div>
+          {menu.discount > 0 && (
+            <div className="text-sm line-through text-muted-foreground">
+              {convertUSD(menu.price)}
+            </div>
+          )}
+          <div className="text-xl font-bold">
+            {menu.discount > 0
+              ? convertUSD(menu.price - menu.price * (menu.discount / 100))
+              : convertUSD(menu.price)
+            }
+          </div>
+        </div>
         <Button
           className="cursor-pointer"
           onClick={() => onAddToCart(menu, "increment")}
