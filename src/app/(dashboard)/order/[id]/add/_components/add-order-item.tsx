@@ -72,7 +72,7 @@ export default function AddOrderItem({ id }: { id: string }) {
   const [carts, setCarts] = useState<Cart[]>([]);
   const handleAddtoCart = (menu: Menu, action: "increment" | "decrement") => {
     const existingItem = carts.find((item) => item.menu_id === menu.id);
-    const priceAfterDicount = menu.price - (menu.price * (menu.discount || 0)) / 100;
+    const priceAfterDicount = menu.price - menu.price * ((menu.discount || 0) / 100);
 
     if (existingItem) {
       if (action === "decrement") {
