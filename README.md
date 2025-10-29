@@ -59,7 +59,7 @@ Live Demo: https://pos-erp-realtime.vercel.app/login
 ```bash
   TakeAway Order (✅)
   Discount Menus (Work in Progress)
- Inventory management system
+  Inventory management system
 ```
 
 ## Quick Start
@@ -108,4 +108,17 @@ Live Demo: https://pos-erp-realtime.vercel.app/login
   "tailwind-merge": "^3.3.1",
   "zod": "^4.0.5",
   "zustand": "^5.0.6"
+
+```
+## Troubleshooting
+**1. Supabase Connection Error**
+```bash
+  - Make sure URL and keys are correct in `.env.local`
+  - Check if Supabase project is still active
+```
+
+**2. Migration Failed**
+```bash
+  - Run migrations sequentially in order
+  - Check error messages in Supabase SQL Editor
 ```
