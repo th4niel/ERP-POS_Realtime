@@ -22,15 +22,16 @@ export default function Summary({
     customer_name: string;
     tables: { name: string }[];
     status: string;
+    payment_token: string;
   };
   orderMenu:
-    | { menus: Menu; quantity: number; status: string; nominal: number; }[]
+    | { menus: Menu; quantity: number; status: string; nominal: number }[]
     | null
     | undefined;
   id: string;
 }) {
   const { grandTotal, totalPrice, tax, service } = usePricing(orderMenu);
-  const profile = useAuthStore((state) => state.profile)
+  const profile = useAuthStore((state) => state.profile);
 
   const isAllServed = useMemo(() => {
     return orderMenu?.every((item) => item.status === "served");
@@ -43,13 +44,17 @@ export default function Summary({
   ] = useActionState(generatePayment, INITIAL_STATE_GENERATE_PAYMENT);
 
   const handleGeneratePayment = () => {
-    const formData = new FormData();
-    formData.append("id", id || "");
-    formData.append("gross_amount", grandTotal.toString());
-    formData.append("customer_name", order?.customer_name || "");
-    startTransition(() => {
-      generatePaymentAction(formData);
-    });
+    if (order?.payment_token) {
+      window.snap.pay(order.payment_token);
+    } else {
+      const formData = new FormData();
+      formData.append("id", id || "");
+      formData.append("gross_amount", grandTotal.toString());
+      formData.append("customer_name", order?.customer_name || "");
+      startTransition(() => {
+        generatePaymentAction(formData);
+      });
+    }
   };
 
   useEffect(() => {
@@ -76,7 +81,10 @@ export default function Summary({
             <div className="space-y-2">
               <Label>Table</Label>
               <Input
-                value={(order?.tables as unknown as { name: string })?.name || 'Takeaway'}
+                value={
+                  (order?.tables as unknown as { name: string })?.name ||
+                  "Takeaway"
+                }
                 disabled
               />
             </div>
@@ -102,18 +110,22 @@ export default function Summary({
             <p className="text-lg font-semibold">Total</p>
             <p className="text-lg font-semibold">{convertUSD(grandTotal)}</p>
           </div>
-          {order?.status === "process" && profile.role !=='kitchen' && (
+          {order?.status === "process" && profile.role !== "kitchen" && (
             <Button
               type="submit"
               onClick={handleGeneratePayment}
-              disabled={!isAllServed || isPendingGeneratePayment || orderMenu?.length === 0}
+              disabled={
+                !isAllServed ||
+                isPendingGeneratePayment ||
+                orderMenu?.length === 0
+              }
               className="w-full font-semibold bg-teal-500 hover:bg-teal-600 text-white cursor-pointer"
             >
-                {isPendingGeneratePayment ? (
-                    <Loader2 className="animate-spin"/>
-                ): (
-                    'Pay'
-                )}
+              {isPendingGeneratePayment ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                "Pay"
+              )}
             </Button>
           )}
         </div>
