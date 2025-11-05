@@ -58,7 +58,7 @@ Live Demo: https://pos-erp-realtime.vercel.app/login
 ##  Future Update
 ```bash
   TakeAway Order (✅)
-  Discount Menus (Work in Progress)
+  Discount Menus (✅)
   Inventory management system
 ```
 
